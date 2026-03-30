@@ -1,0 +1,10 @@
+{
+  "name": "civic-ai",
+  "version": "1.0.0",
+  "description": "Civic AI municipal complaint, SOS, and query management",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --check server.js"
+  }
+}

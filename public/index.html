@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic AI | Municipal Assistant</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div>
+        <p class="badge">SMART MUNICIPAL SUPPORT</p>
+        <h1>Civic AI</h1>
+        <p class="subtitle">AI-powered platform to detect SOS, complaints, and citizen queries instantly.</p>
+      </div>
+      <div class="hero-actions">
+        <button id="sosBtn" class="btn btn-sos">🚨 SOS Emergency</button>
+        <a href="/dashboard.html" class="btn btn-outline">Open Gov Dashboard</a>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="card glass">
+        <h2>Submit an Issue</h2>
+        <form id="reportForm">
+          <label>Name <input name="citizenName" placeholder="Your name" /></label>
+          <label>Location <input name="location" placeholder="Area / Ward" /></label>
+          <label>Message <textarea name="message" rows="5" placeholder="Describe issue or question"></textarea></label>
+          <button class="btn" type="submit">Submit to Civic AI</button>
+        </form>
+        <p id="feedback"></p>
+      </section>
+
+      <section class="card">
+        <h2>Live Activity</h2>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="bars" id="bars"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
