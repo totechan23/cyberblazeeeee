@@ -25,6 +25,14 @@
         <form id="reportForm">
           <label>Name <input name="citizenName" placeholder="Your name" /></label>
           <label>Location <input name="location" placeholder="Area / Ward" /></label>
+          <label>
+            Issue Type
+            <select name="manualType" required>
+              <option value="">Select type</option>
+              <option value="complaint">Complaint</option>
+              <option value="query">Query</option>
+            </select>
+          </label>
           <label>Message <textarea name="message" rows="5" placeholder="Describe issue or question"></textarea></label>
           <button class="btn" type="submit">Submit to Civic AI</button>
         </form>
@@ -35,6 +43,17 @@
         <h2>Live Activity</h2>
         <div class="stats-grid" id="statsGrid"></div>
         <div class="bars" id="bars"></div>
+      </section>
+
+      <section class="card chat-card">
+        <h2>Civic AI Chat</h2>
+        <div id="chatLog" class="chat-log">
+          <p><strong>AI:</strong> Hello! Ask me about SOS, complaints, or queries.</p>
+        </div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" name="message" placeholder="Type your message..." required />
+          <button class="btn" type="submit">Send</button>
+        </form>
       </section>
     </main>
 

@@ -18,19 +18,10 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml; charset=utf-8',
 };
 
-const KEYWORDS = {
-  sos: [
-    'sos', 'help', 'emergency', 'urgent', 'accident', 'fire', 'attack', 'danger',
-    'flood', 'collapse', 'ambulance', 'rescue', 'earthquake'
-  ],
-  complaint: [
-    'complaint', 'garbage', 'waste', 'drain', 'pothole', 'water leakage', 'sewage',
-    'street light', 'corruption', 'noise', 'pollution', 'illegal dumping'
-  ],
-  query: [
-    'query', 'question', 'status', 'when', 'how', 'where', 'information', 'update', 'process'
-  ]
-};
+const SOS_KEYWORDS = [
+  'sos', 'help', 'emergency', 'urgent', 'accident', 'fire', 'attack', 'danger',
+  'flood', 'collapse', 'ambulance', 'rescue', 'earthquake'
+];
 
 function readReports() {
   return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
@@ -40,26 +31,47 @@ function writeReports(reports) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(reports, null, 2));
 }
 
-function classifyMessage(message = '') {
+function isSOSMessage(message = '') {
   const text = message.toLowerCase();
 
-  const scores = {
-    sos: KEYWORDS.sos.filter((k) => text.includes(k)).length,
-    complaint: KEYWORDS.complaint.filter((k) => text.includes(k)).length,
-    query: KEYWORDS.query.filter((k) => text.includes(k)).length,
+  return SOS_KEYWORDS.some((k) => text.includes(k));
+}
+
+function buildChatbotReply(type, citizenName) {
+  const name = (citizenName || 'Citizen').trim() || 'Citizen';
+  const replies = {
+    sos: `⚠️ ${name}, your SOS has been registered. Please stay safe. Emergency response is being escalated.`,
+    complaint: `🙏 ${name}, thanks for reporting this complaint. We have logged it and the civic team will review it soon.`,
+    query: `💬 ${name}, your query is received. The support team will share an update as soon as possible.`,
   };
+  return replies[type] || `✅ ${name}, your request has been recorded.`;
+}
 
-  if (scores.sos > 0 && scores.sos >= scores.complaint && scores.sos >= scores.query) {
-    return 'sos';
-  }
-  if (scores.complaint > 0 && scores.complaint >= scores.query) {
-    return 'complaint';
-  }
-  if (scores.query > 0) {
-    return 'query';
+function buildAIChatReply(message = '', reports = []) {
+  const text = message.toLowerCase();
+  const stats = buildStats(reports);
+
+  if (!text.trim()) {
+    return 'Hi! Please type your complaint, query, or SOS details and I will guide you.';
   }
 
-  return 'query';
+  if (isSOSMessage(text)) {
+    return 'This sounds urgent. Please press the 🚨 SOS button immediately. Stay in a safe location while help is escalated.';
+  }
+
+  if (text.includes('status') || text.includes('pending') || text.includes('resolved')) {
+    return `Current cases: Total ${stats.total}, Pending ${stats.pending}, Resolved ${stats.resolved}. Share your case ID for a specific status update.`;
+  }
+
+  if (text.includes('complaint')) {
+    return 'Please submit your complaint using the form, choose "Complaint", and include location + issue details for faster action.';
+  }
+
+  if (text.includes('query') || text.includes('question') || text.includes('how') || text.includes('when')) {
+    return 'Please share your query details. I will log it for the support team and they will provide an update.';
+  }
+
+  return 'I can help with SOS, complaint submission, and query updates. Tell me what happened and your location.';
 }
 
 function buildStats(reports) {
@@ -143,9 +155,19 @@ const server = http.createServer(async (req, res) => {
 
       const message = (body.message || '').trim();
       const manualType = body.manualType;
-      const type = manualType && ['sos', 'complaint', 'query'].includes(manualType)
-        ? manualType
-        : classifyMessage(message);
+      const isEmergency = isSOSMessage(message);
+      let type = null;
+
+      if (manualType && ['sos', 'complaint', 'query'].includes(manualType)) {
+        type = manualType;
+      } else if (isEmergency) {
+        type = 'sos';
+      }
+
+      if (!type) {
+        sendJSON(res, 400, { error: 'Please select Complaint or Query. System only auto-detects SOS.' });
+        return;
+      }
 
       if (!message && type !== 'sos') {
         sendJSON(res, 400, { error: 'Message is required' });
@@ -165,7 +187,13 @@ const server = http.createServer(async (req, res) => {
       reports.unshift(report);
       writeReports(reports);
 
-      sendJSON(res, 201, { success: true, report, stats: buildStats(reports) });
+      const chatbotReply = buildChatbotReply(type, report.citizenName);
+      sendJSON(res, 201, {
+        success: true,
+        report,
+        stats: buildStats(reports),
+        chatbotReply,
+      });
     } catch (error) {
       sendJSON(res, 400, { error: error.message });
     }
@@ -181,6 +209,19 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/api/reports') {
     const reports = readReports();
     sendJSON(res, 200, reports);
+    return;
+  }
+
+  if (req.method === 'POST' && req.url === '/api/chat') {
+    try {
+      const body = await parseBody(req);
+      const reports = readReports();
+      const message = (body.message || '').trim();
+      const reply = buildAIChatReply(message, reports);
+      sendJSON(res, 200, { success: true, reply });
+    } catch (error) {
+      sendJSON(res, 400, { error: error.message });
+    }
     return;
   }
 

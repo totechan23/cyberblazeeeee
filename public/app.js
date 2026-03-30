@@ -3,6 +3,16 @@ const feedback = document.getElementById('feedback');
 const statsGrid = document.getElementById('statsGrid');
 const bars = document.getElementById('bars');
 const sosBtn = document.getElementById('sosBtn');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const chatLog = document.getElementById('chatLog');
+
+function addChatMessage(sender, text) {
+  const row = document.createElement('p');
+  row.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  chatLog.appendChild(row);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
 
 function renderStats(stats) {
   const labels = ['total', 'sos', 'complaint', 'query', 'pending', 'resolved'];
@@ -44,8 +54,10 @@ reportForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}`;
+  const chatbotReply = data.chatbotReply || 'Your request has been received.';
+  feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}\n${chatbotReply}`;
   feedback.style.color = '#90f5ec';
+  console.log(`Civic AI Chatbot: ${chatbotReply}`);
   reportForm.reset();
   renderStats(data.stats);
 });
@@ -64,11 +76,32 @@ sosBtn.addEventListener('click', async () => {
     body: JSON.stringify(payload),
   });
   const data = await res.json();
+  const chatbotReply = data.chatbotReply || 'SOS received. Help is on the way.';
   feedback.textContent = res.ok
-    ? `🚨 SOS raised successfully. Case ID ${data.report.id}`
+    ? `🚨 SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`
     : `SOS failed: ${data.error}`;
   feedback.style.color = res.ok ? '#ff8f9a' : '#ffd166';
+  if (res.ok) console.log(`Civic AI Chatbot: ${chatbotReply}`);
   if (res.ok) renderStats(data.stats);
+});
+
+chatForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  addChatMessage('You', message);
+  chatInput.value = '';
+
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message }),
+  });
+  const data = await res.json();
+  const reply = res.ok ? data.reply : (data.error || 'Unable to respond right now.');
+  addChatMessage('AI', reply);
+  console.log(`Civic AI Chat: ${reply}`);
 });
 
 loadStats();
