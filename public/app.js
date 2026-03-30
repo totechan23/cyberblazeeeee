@@ -3,6 +3,9 @@ const feedback = document.getElementById('feedback');
 const statsGrid = document.getElementById('statsGrid');
 const bars = document.getElementById('bars');
 const sosBtn = document.getElementById('sosBtn');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const chatMessages = document.getElementById('chatMessages');
 
 function escapeHtml(value = '') {
   return String(value)
@@ -42,6 +45,15 @@ function renderStats(stats = {}) {
       return `<div class="bar" style="height:${height}px">${escapeHtml(type)}<br>${value}</div>`;
     })
     .join('');
+}
+
+function addChatMessage(role, text) {
+  if (!chatMessages) return;
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${role}`;
+  bubble.innerHTML = `<strong>${role === 'user' ? 'You' : 'Civic AI'}:</strong> ${escapeHtml(text)}`;
+  chatMessages.appendChild(bubble);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function loadStats() {
@@ -104,6 +116,30 @@ sosBtn.addEventListener('click', async () => {
     feedback.style.color = '#ffd166';
   }
 });
+
+if (chatForm && chatInput && chatMessages) {
+  addChatMessage('assistant', 'Hello! I can guide you on reporting issues, SOS, and query status.');
+
+  chatForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const prompt = chatInput.value.trim();
+    if (!prompt) return;
+
+    addChatMessage('user', prompt);
+    chatInput.value = '';
+
+    try {
+      const data = await apiFetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      addChatMessage('assistant', data.reply || 'I am here to help with civic reports and SOS support.');
+    } catch (error) {
+      addChatMessage('assistant', `Sorry, chat is unavailable right now: ${error.message}`);
+    }
+  });
+}
 
 loadStats();
 setInterval(loadStats, 8000);

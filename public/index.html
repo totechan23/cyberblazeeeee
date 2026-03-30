@@ -44,6 +44,22 @@
         <div class="stats-grid" id="statsGrid"></div>
         <div class="bars" id="bars"></div>
       </section>
+
+      <section class="card chat-card">
+        <h2>AI Civic Chat</h2>
+        <p class="subtitle">Ask Civic AI about complaints, SOS, or how to use this portal.</p>
+        <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+        <form id="chatForm" class="chat-form">
+          <input
+            id="chatInput"
+            name="prompt"
+            placeholder="Type your question for Civic AI"
+            autocomplete="off"
+            required
+          />
+          <button class="btn" type="submit">Send</button>
+        </form>
+      </section>
     </main>
 
     <script src="app.js"></script>

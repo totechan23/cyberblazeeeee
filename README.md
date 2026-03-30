@@ -24,6 +24,7 @@ Then open `http://localhost:3000`.
 ## API
 
 - `POST /api/report` create report
+- `POST /api/chat` chat with Civic AI helper
 - `GET /api/stats` aggregate counters
 - `GET /api/reports` list all reports
 - `PATCH /api/report/:id` toggle status (`pending`/`resolved`)
