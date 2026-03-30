@@ -4,27 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic AI | Municipal Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="hero">
-      <div>
+    <div class="bg-orb orb-1" aria-hidden="true"></div>
+    <div class="bg-orb orb-2" aria-hidden="true"></div>
+
+    <header class="hero shell">
+      <div class="hero-copy">
         <p class="badge">SMART MUNICIPAL SUPPORT</p>
-        <h1>Civic AI</h1>
-        <p class="subtitle">AI-powered platform to detect SOS, complaints, and citizen queries instantly.</p>
+        <h1>Civic AI Command Portal</h1>
+        <p class="subtitle">
+          A modern, AI-powered citizen experience to report local issues, trigger emergency SOS,
+          and chat with an intelligent civic assistant.
+        </p>
       </div>
       <div class="hero-actions">
-        <button id="sosBtn" class="btn btn-sos">🚨 SOS Emergency</button>
-        <a href="/dashboard.html" class="btn btn-outline">Open Gov Dashboard</a>
+        <button id="sosBtn" class="btn btn-sos">🚨 Raise SOS</button>
+        <a href="/dashboard.html" class="btn btn-outline">Open Admin Dashboard</a>
       </div>
     </header>
 
-    <main class="layout">
-      <section class="card glass">
-        <h2>Submit an Issue</h2>
-        <form id="reportForm">
-          <label>Name <input name="citizenName" placeholder="Your name" /></label>
-          <label>Location <input name="location" placeholder="Area / Ward" /></label>
+    <main class="shell layout">
+      <section class="card card-highlight">
+        <div class="card-title-row">
+          <h2>Submit an Issue</h2>
+          <span class="tag tag-query">Realtime Intake</span>
+        </div>
+        <form id="reportForm" class="stacked-form">
+          <div class="field-grid">
+            <label>Name <input name="citizenName" placeholder="Your full name" /></label>
+            <label>Location <input name="location" placeholder="Area / Ward / Street" /></label>
+          </div>
           <label>
             Issue Type
             <select name="manualType" required>
@@ -33,27 +50,40 @@
               <option value="query">Query</option>
             </select>
           </label>
-          <label>Message <textarea name="message" rows="5" placeholder="Describe issue or question"></textarea></label>
+          <label>
+            Message
+            <textarea
+              name="message"
+              rows="5"
+              placeholder="Describe the problem or your question in detail"
+            ></textarea>
+          </label>
           <button class="btn" type="submit">Submit to Civic AI</button>
         </form>
         <p id="feedback"></p>
       </section>
 
       <section class="card">
-        <h2>Live Activity</h2>
+        <div class="card-title-row">
+          <h2>Live Activity</h2>
+          <span class="tag">Auto-refresh: 8s</span>
+        </div>
         <div class="stats-grid" id="statsGrid"></div>
         <div class="bars" id="bars"></div>
       </section>
 
       <section class="card chat-card">
-        <h2>AI Civic Chat</h2>
-        <p class="subtitle">Ask Civic AI about complaints, SOS, or how to use this portal.</p>
+        <div class="card-title-row">
+          <h2>AI Civic Chat</h2>
+          <span class="tag tag-query">Assistant Online</span>
+        </div>
+        <p class="subtitle">Ask for triage help, report drafting, or civic service guidance.</p>
         <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
         <form id="chatForm" class="chat-form">
           <input
             id="chatInput"
             name="prompt"
-            placeholder="Type your question for Civic AI"
+            placeholder="Ask Civic AI anything about complaints, SOS, or city services"
             autocomplete="off"
             required
           />
