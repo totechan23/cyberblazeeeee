@@ -9,7 +9,10 @@ const chatLog = document.getElementById('chatLog');
 
 function addChatMessage(sender, text) {
   const row = document.createElement('p');
-  row.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  const label = document.createElement('strong');
+  label.textContent = `${sender}: `;
+  row.appendChild(label);
+  row.appendChild(document.createTextNode(text));
   chatLog.appendChild(row);
   chatLog.scrollTop = chatLog.scrollHeight;
 }
@@ -85,24 +88,26 @@ sosBtn.addEventListener('click', async () => {
   if (res.ok) renderStats(data.stats);
 });
 
-chatForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const message = chatInput.value.trim();
-  if (!message) return;
+if (chatForm && chatInput && chatLog) {
+  chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
 
-  addChatMessage('You', message);
-  chatInput.value = '';
+    addChatMessage('You', message);
+    chatInput.value = '';
 
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message }),
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
+    const data = await res.json();
+    const reply = res.ok ? data.reply : (data.error || 'Unable to respond right now.');
+    addChatMessage('AI', reply);
+    console.log(`Civic AI Chat: ${reply}`);
   });
-  const data = await res.json();
-  const reply = res.ok ? data.reply : (data.error || 'Unable to respond right now.');
-  addChatMessage('AI', reply);
-  console.log(`Civic AI Chat: ${reply}`);
-});
+}
 
 loadStats();
 setInterval(loadStats, 8000);

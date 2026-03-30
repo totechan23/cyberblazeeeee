@@ -31,6 +31,10 @@ function writeReports(reports) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(reports, null, 2));
 }
 
+function normalizeText(value) {
+  return String(value || '').trim();
+}
+
 function isSOSMessage(message = '') {
   const text = message.toLowerCase();
 
@@ -48,7 +52,7 @@ function buildChatbotReply(type, citizenName) {
 }
 
 function buildAIChatReply(message = '', reports = []) {
-  const text = message.toLowerCase();
+  const text = String(message || '').toLowerCase();
   const stats = buildStats(reports);
 
   if (!text.trim()) {
@@ -153,7 +157,7 @@ const server = http.createServer(async (req, res) => {
       const body = await parseBody(req);
       const reports = readReports();
 
-      const message = (body.message || '').trim();
+      const message = normalizeText(body.message);
       const manualType = body.manualType;
       const isEmergency = isSOSMessage(message);
       let type = null;
@@ -216,7 +220,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await parseBody(req);
       const reports = readReports();
-      const message = (body.message || '').trim();
+      const message = normalizeText(body.message);
       const reply = buildAIChatReply(message, reports);
       sendJSON(res, 200, { success: true, reply });
     } catch (error) {
