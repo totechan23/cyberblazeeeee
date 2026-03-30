@@ -26,6 +26,27 @@ body {
   color: var(--text);
   min-height: 100vh;
   position: relative;
+  transition: box-shadow 0.2s ease;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 34, 34, 0.82);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 9999;
+}
+
+body.sos-flash-active::after {
+  opacity: 1;
+}
+
+.btn-sos.ai-triggered {
+  box-shadow: 0 0 0 4px rgba(255, 77, 109, 0.35), 0 0 22px rgba(255, 77, 109, 0.85);
+  transform: translateY(-1px) scale(1.02);
 }
 
 .bg-orb {
