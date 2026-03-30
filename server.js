@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -20,21 +21,33 @@ const MIME_TYPES = {
 
 const SOS_KEYWORDS = [
   'sos', 'help', 'emergency', 'urgent', 'accident', 'fire', 'attack', 'danger',
-  'flood', 'collapse', 'ambulance', 'rescue', 'earthquake'
+  'flood', 'collapse', 'ambulance', 'rescue', 'earthquake',
 ];
 
+const VALID_TYPES = new Set(['sos', 'complaint', 'query']);
+
 function readReports() {
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+  try {
+    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function writeReports(reports) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(reports, null, 2));
 }
 
+function sanitizeText(value, fallback) {
+  const clean = String(value || '').trim();
+  return clean || fallback;
+}
+
 function isSOSMessage(message = '') {
   const text = message.toLowerCase();
-
-  return SOS_KEYWORDS.some((k) => text.includes(k));
+  return SOS_KEYWORDS.some((keyword) => text.includes(keyword));
 }
 
 function buildChatbotReply(type, citizenName) {
@@ -92,7 +105,8 @@ function parseBody(req) {
 }
 
 function serveStatic(req, res) {
-  let filePath = path.join(PUBLIC_DIR, req.url === '/' ? 'index.html' : req.url);
+  const safeUrl = req.url.split('?')[0];
+  let filePath = path.join(PUBLIC_DIR, safeUrl === '/' ? 'index.html' : safeUrl);
   if (!filePath.startsWith(PUBLIC_DIR)) {
     sendJSON(res, 403, { error: 'Forbidden' });
     return;
@@ -126,16 +140,13 @@ const server = http.createServer(async (req, res) => {
       const body = await parseBody(req);
       const reports = readReports();
 
-      const message = (body.message || '').trim();
-      const manualType = body.manualType;
+      const message = sanitizeText(body.message, '');
+      const manualType = sanitizeText(body.manualType, '').toLowerCase();
       const isEmergency = isSOSMessage(message);
       let type = null;
 
-      if (manualType && ['sos', 'complaint', 'query'].includes(manualType)) {
-        type = manualType;
-      } else if (isEmergency) {
-        type = 'sos';
-      }
+      if (VALID_TYPES.has(manualType)) type = manualType;
+      else if (isEmergency) type = 'sos';
 
       if (!type) {
         sendJSON(res, 400, { error: 'Please select Complaint or Query. System only auto-detects SOS.' });
@@ -148,9 +159,9 @@ const server = http.createServer(async (req, res) => {
       }
 
       const report = {
-        id: `CIV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        citizenName: (body.citizenName || 'Anonymous').trim(),
-        location: (body.location || 'Not provided').trim(),
+        id: `CIV-${crypto.randomUUID()}`,
+        citizenName: sanitizeText(body.citizenName, 'Anonymous'),
+        location: sanitizeText(body.location, 'Not provided'),
         message: message || 'SOS button triggered from Civic AI',
         type,
         status: 'pending',
@@ -188,11 +199,13 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'PATCH' && req.url.startsWith('/api/report/')) {
     const id = req.url.split('/').pop();
     const reports = readReports();
-    const report = reports.find((r) => r.id === id);
+    const report = reports.find((item) => item.id === id);
+
     if (!report) {
       sendJSON(res, 404, { error: 'Report not found' });
       return;
     }
+
     report.status = report.status === 'pending' ? 'resolved' : 'pending';
     writeReports(reports);
     sendJSON(res, 200, { success: true, report, stats: buildStats(reports) });
