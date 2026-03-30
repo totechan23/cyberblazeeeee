@@ -156,7 +156,7 @@ def build_reply(prompt: str, stats: dict, decision: Decision) -> str:
     if decision.intent == "emergency":
         return (
             "Hey, this sounds urgent. Please use SOS right away and share your exact location, nearby landmark, "
-            "any injuries/damage, and a callback number. If there's immediate danger to life, call local emergency services now."
+            "any injuries/damage, and a callback number. If there's immediate danger to life, call 112 now."
         )
 
     if decision.intent == "complaint":

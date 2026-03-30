@@ -62,7 +62,7 @@ function showEmergencyContacts() {
   }, 5000);
 }
 
-function speakEmergencyAlert(message = 'Emergency detected. Sending SOS alert now. Please stay calm and move to a safe location if possible.') {
+function speakEmergencyAlert(message = 'Emergency detected. Sending SOS alert now. Please stay calm and move to a safe location if possible. If life is in danger, call 112 immediately.') {
   if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance !== 'function') {
     return;
   }
@@ -88,7 +88,7 @@ function speakEmergencyAlert(message = 'Emergency detected. Sending SOS alert no
 
 async function raiseSOS(
   triggerReason = 'Emergency alert from SOS button',
-  voiceMessage = 'Emergency detected. Sending SOS alert now. Please stay calm and move to a safe location if possible.',
+  voiceMessage = 'Emergency detected. Sending SOS alert now. Please stay calm and move to a safe location if possible. If life is in danger, call 112 immediately.',
 ) {
   const payload = {
     citizenName: 'SOS Caller',
