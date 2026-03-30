@@ -138,19 +138,53 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
   recognition.lang = 'en-US';
   recognition.interimResults = true;
   recognition.continuous = false;
+  recognition.maxAlternatives = 1;
 
   let active = false;
+  let finalTranscript = '';
+  let permissionChecked = false;
+  let restartBlockedUntil = 0;
+
+  async function ensureMicrophonePermission() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      statusElement.textContent = 'Microphone access is unavailable in this browser.';
+      return false;
+    }
+
+    try {
+      if (navigator.permissions?.query) {
+        const permission = await navigator.permissions.query({ name: 'microphone' });
+        permissionChecked = true;
+        if (permission.state === 'denied') {
+          statusElement.textContent = 'Microphone permission is blocked. Enable it in browser settings.';
+          return false;
+        }
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      return true;
+    } catch (error) {
+      statusElement.textContent = 'Microphone permission was denied. Please allow access and try again.';
+      return false;
+    }
+  }
 
   recognition.onstart = () => {
     active = true;
+    finalTranscript = '';
     button.classList.add('listening');
     statusElement.textContent = 'Listening… speak now.';
   };
 
   recognition.onresult = (event) => {
-    let transcript = '';
+    let transcript = finalTranscript;
     for (let i = event.resultIndex; i < event.results.length; i += 1) {
-      transcript += event.results[i][0].transcript;
+      const chunk = event.results[i][0].transcript || '';
+      if (event.results[i].isFinal) {
+        finalTranscript += chunk;
+      }
+      transcript += chunk;
     }
     targetInput.value = transcript.trim();
   };
@@ -164,16 +198,56 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
   recognition.onerror = (event) => {
     active = false;
     button.classList.remove('listening');
+    if (event.error === 'not-allowed') {
+      statusElement.textContent = 'Microphone permission denied. Allow access to use voice input.';
+      return;
+    }
+    if (event.error === 'audio-capture') {
+      statusElement.textContent = 'No microphone detected. Check your audio input device.';
+      return;
+    }
+    if (event.error === 'network') {
+      statusElement.textContent = 'Speech service network error. Check internet connection and retry.';
+      return;
+    }
+    if (event.error === 'aborted') {
+      statusElement.textContent = 'Voice input stopped.';
+      return;
+    }
+    if (event.error === 'no-speech') {
+      statusElement.textContent = 'No speech detected. Try again and speak closer to the microphone.';
+      restartBlockedUntil = Date.now() + 900;
+      return;
+    }
     statusElement.textContent = `Voice error: ${event.error}`;
   };
 
-  button.addEventListener('click', () => {
+  button.addEventListener('click', async () => {
     if (active) {
       recognition.stop();
       return;
     }
+
+    if (Date.now() < restartBlockedUntil) {
+      statusElement.textContent = 'Please wait a moment, then tap voice input again.';
+      return;
+    }
+
+    if (!permissionChecked) {
+      const hasPermission = await ensureMicrophonePermission();
+      if (!hasPermission) return;
+    }
+
     statusElement.textContent = '';
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (error) {
+      if (error.name === 'InvalidStateError') {
+        statusElement.textContent = 'Voice input is already starting. Please wait a moment.';
+        return;
+      }
+      statusElement.textContent = `Unable to start voice input: ${error.message}`;
+    }
   });
 }
 
