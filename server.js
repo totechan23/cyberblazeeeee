@@ -25,6 +25,11 @@ const SOS_KEYWORDS = [
 ];
 
 const VALID_TYPES = new Set(['sos', 'complaint', 'query']);
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'for', 'to', 'of', 'and', 'or', 'in', 'on', 'at', 'it',
+  'this', 'that', 'with', 'from', 'my', 'i', 'we', 'you', 'our', 'your', 'be', 'can', 'could', 'should',
+  'would', 'how', 'what', 'when', 'where', 'why', 'please', 'about', 'me',
+]);
 
 function readReports() {
   try {
@@ -60,31 +65,71 @@ function buildChatbotReply(type, citizenName) {
   return replies[type] || `✅ ${name}, your request has been recorded.`;
 }
 
+function tokenize(message) {
+  return message
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((token) => token && !STOP_WORDS.has(token));
+}
+
+function summarizeBacklog(stats) {
+  if (!stats.total) return 'No reports have been logged yet.';
+  const pendingRate = Math.round((stats.pending / Math.max(stats.total, 1)) * 100);
+  if (pendingRate > 70) return 'Backlog is high and most reports are still pending.';
+  if (pendingRate > 40) return 'Backlog is moderate with a mix of pending and resolved cases.';
+  return 'Resolution velocity looks healthy with most items already resolved.';
+}
+
+function detectIntent(tokens) {
+  const score = {
+    emergency: 0,
+    complaint: 0,
+    query: 0,
+    stats: 0,
+    guidance: 0,
+  };
+
+  const tokenSet = new Set(tokens);
+  for (const token of tokenSet) {
+    if (['sos', 'emergency', 'urgent', 'danger', 'fire', 'attack', 'accident', 'rescue'].includes(token)) score.emergency += 3;
+    if (['complaint', 'issue', 'problem', 'broken', 'garbage', 'drainage', 'streetlight', 'pothole'].includes(token)) score.complaint += 2;
+    if (['query', 'question', 'clarify', 'information', 'details', 'update'].includes(token)) score.query += 2;
+    if (['stats', 'status', 'reports', 'dashboard', 'summary', 'count'].includes(token)) score.stats += 2;
+    if (['help', 'guide', 'steps', 'process', 'how'].includes(token)) score.guidance += 1;
+  }
+
+  const top = Object.entries(score).sort((a, b) => b[1] - a[1])[0];
+  return top && top[1] > 0 ? top[0] : 'guidance';
+}
+
 function buildAssistantReply(prompt, reports) {
-  const message = sanitizeText(prompt, '').toLowerCase();
+  const message = sanitizeText(prompt, '');
   const stats = buildStats(reports);
+  const tokens = tokenize(message);
+  const intent = detectIntent(tokens);
 
   if (!message) {
-    return 'Please share your question and I will help with complaints, SOS, or queries.';
+    return 'Tell me what you need help with. I can triage emergency situations, guide complaint filing, answer civic queries, and summarize live report trends.';
   }
 
-  if (message.includes('sos') || message.includes('emergency') || message.includes('urgent')) {
-    return 'If this is urgent, press the 🚨 SOS button now. Include location and a short description so responders can act faster.';
+  if (intent === 'emergency') {
+    return 'This sounds urgent. Use 🚨 SOS immediately and include exact location, nearby landmark, injuries/damage, and callback number. If there is immediate risk to life, contact local emergency services right now.';
   }
 
-  if (message.includes('complaint')) {
-    return 'To file a complaint, choose "Complaint", add your location and details, then submit. You can track progress from the government dashboard.';
+  if (intent === 'complaint') {
+    return 'For a strong complaint, include: (1) exact location, (2) issue type, (3) impact on citizens, and (4) photos/reference details. Submit it as "Complaint" so the civic team can route it to the right department faster.';
   }
 
-  if (message.includes('query') || message.includes('question')) {
-    return 'For a civic query, select "Query" in the form and provide full details so the team can respond clearly.';
+  if (intent === 'query') {
+    return 'For civic queries, write the context, your exact question, and any case ID. The clearer your query, the faster the department can provide a complete response.';
   }
 
-  if (message.includes('stats') || message.includes('status') || message.includes('reports')) {
-    return `Current activity: total ${stats.total}, pending ${stats.pending}, resolved ${stats.resolved}, SOS ${stats.sos}, complaints ${stats.complaint}, queries ${stats.query}.`;
+  if (intent === 'stats') {
+    return `Live summary: total ${stats.total}, pending ${stats.pending}, resolved ${stats.resolved}, SOS ${stats.sos}, complaints ${stats.complaint}, queries ${stats.query}. Insight: ${summarizeBacklog(stats)}`;
   }
 
-  return 'I can help you submit complaints, raise SOS alerts, and understand civic report status. Ask me about any of these.';
+  return `I can help with SOS escalation, complaint drafting, and query handling. Current system load: ${stats.total} total reports with ${stats.pending} pending. Ask for "stats", "file complaint steps", or "SOS help" for tailored guidance.`;
 }
 
 function buildStats(reports) {
