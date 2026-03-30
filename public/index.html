@@ -25,6 +25,14 @@
         <form id="reportForm">
           <label>Name <input name="citizenName" placeholder="Your name" /></label>
           <label>Location <input name="location" placeholder="Area / Ward" /></label>
+          <label>
+            Issue Type
+            <select name="manualType" required>
+              <option value="">Select type</option>
+              <option value="complaint">Complaint</option>
+              <option value="query">Query</option>
+            </select>
+          </label>
           <label>Message <textarea name="message" rows="5" placeholder="Describe issue or question"></textarea></label>
           <button class="btn" type="submit">Submit to Civic AI</button>
         </form>
