@@ -333,9 +333,35 @@ select:focus {
 
 .chat-form {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 0.6rem;
   align-items: center;
+}
+
+.voice-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.btn-voice {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+}
+
+.btn-voice.listening {
+  border-color: rgba(88, 245, 216, 0.85);
+  box-shadow: 0 0 0 3px rgba(88, 245, 216, 0.2);
+}
+
+.voice-status {
+  color: var(--muted);
+  font-size: 0.86rem;
+  margin: 0;
+  min-height: 1.2rem;
 }
 
 .table-wrap {
