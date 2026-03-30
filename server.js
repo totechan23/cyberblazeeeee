@@ -18,19 +18,10 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml; charset=utf-8',
 };
 
-const KEYWORDS = {
-  sos: [
-    'sos', 'help', 'emergency', 'urgent', 'accident', 'fire', 'attack', 'danger',
-    'flood', 'collapse', 'ambulance', 'rescue', 'earthquake'
-  ],
-  complaint: [
-    'complaint', 'garbage', 'waste', 'drain', 'pothole', 'water leakage', 'sewage',
-    'street light', 'corruption', 'noise', 'pollution', 'illegal dumping'
-  ],
-  query: [
-    'query', 'question', 'status', 'when', 'how', 'where', 'information', 'update', 'process'
-  ]
-};
+const SOS_KEYWORDS = [
+  'sos', 'help', 'emergency', 'urgent', 'accident', 'fire', 'attack', 'danger',
+  'flood', 'collapse', 'ambulance', 'rescue', 'earthquake'
+];
 
 function readReports() {
   return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
@@ -40,26 +31,20 @@ function writeReports(reports) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(reports, null, 2));
 }
 
-function classifyMessage(message = '') {
+function isSOSMessage(message = '') {
   const text = message.toLowerCase();
 
-  const scores = {
-    sos: KEYWORDS.sos.filter((k) => text.includes(k)).length,
-    complaint: KEYWORDS.complaint.filter((k) => text.includes(k)).length,
-    query: KEYWORDS.query.filter((k) => text.includes(k)).length,
+  return SOS_KEYWORDS.some((k) => text.includes(k));
+}
+
+function buildChatbotReply(type, citizenName) {
+  const name = (citizenName || 'Citizen').trim() || 'Citizen';
+  const replies = {
+    sos: `⚠️ ${name}, your SOS has been registered. Please stay safe. Emergency response is being escalated.`,
+    complaint: `🙏 ${name}, thanks for reporting this complaint. We have logged it and the civic team will review it soon.`,
+    query: `💬 ${name}, your query is received. The support team will share an update as soon as possible.`,
   };
-
-  if (scores.sos > 0 && scores.sos >= scores.complaint && scores.sos >= scores.query) {
-    return 'sos';
-  }
-  if (scores.complaint > 0 && scores.complaint >= scores.query) {
-    return 'complaint';
-  }
-  if (scores.query > 0) {
-    return 'query';
-  }
-
-  return 'query';
+  return replies[type] || `✅ ${name}, your request has been recorded.`;
 }
 
 function buildStats(reports) {
@@ -143,9 +128,19 @@ const server = http.createServer(async (req, res) => {
 
       const message = (body.message || '').trim();
       const manualType = body.manualType;
-      const type = manualType && ['sos', 'complaint', 'query'].includes(manualType)
-        ? manualType
-        : classifyMessage(message);
+      const isEmergency = isSOSMessage(message);
+      let type = null;
+
+      if (manualType && ['sos', 'complaint', 'query'].includes(manualType)) {
+        type = manualType;
+      } else if (isEmergency) {
+        type = 'sos';
+      }
+
+      if (!type) {
+        sendJSON(res, 400, { error: 'Please select Complaint or Query. System only auto-detects SOS.' });
+        return;
+      }
 
       if (!message && type !== 'sos') {
         sendJSON(res, 400, { error: 'Message is required' });
@@ -165,7 +160,13 @@ const server = http.createServer(async (req, res) => {
       reports.unshift(report);
       writeReports(reports);
 
-      sendJSON(res, 201, { success: true, report, stats: buildStats(reports) });
+      const chatbotReply = buildChatbotReply(type, report.citizenName);
+      sendJSON(res, 201, {
+        success: true,
+        report,
+        stats: buildStats(reports),
+        chatbotReply,
+      });
     } catch (error) {
       sendJSON(res, 400, { error: error.message });
     }

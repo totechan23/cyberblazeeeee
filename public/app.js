@@ -44,8 +44,10 @@ reportForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}`;
+  const chatbotReply = data.chatbotReply || 'Your request has been received.';
+  feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}\n${chatbotReply}`;
   feedback.style.color = '#90f5ec';
+  console.log(`Civic AI Chatbot: ${chatbotReply}`);
   reportForm.reset();
   renderStats(data.stats);
 });
@@ -64,10 +66,12 @@ sosBtn.addEventListener('click', async () => {
     body: JSON.stringify(payload),
   });
   const data = await res.json();
+  const chatbotReply = data.chatbotReply || 'SOS received. Help is on the way.';
   feedback.textContent = res.ok
-    ? `🚨 SOS raised successfully. Case ID ${data.report.id}`
+    ? `🚨 SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`
     : `SOS failed: ${data.error}`;
   feedback.style.color = res.ok ? '#ff8f9a' : '#ffd166';
+  if (res.ok) console.log(`Civic AI Chatbot: ${chatbotReply}`);
   if (res.ok) renderStats(data.stats);
 });
 
