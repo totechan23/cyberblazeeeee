@@ -11,8 +11,11 @@ const reportVoiceBtn = document.getElementById('reportVoiceBtn');
 const reportVoiceStatus = document.getElementById('reportVoiceStatus');
 const chatVoiceBtn = document.getElementById('chatVoiceBtn');
 const chatVoiceStatus = document.getElementById('chatVoiceStatus');
+const liveClock = document.getElementById('liveClock');
+const liveMessage = document.getElementById('liveMessage');
 let sosFlashTimer = null;
 let emergencyVoiceTimer = null;
+let liveTickerTimer = null;
 
 function escapeHtml(value = '') {
   return String(value)
@@ -122,6 +125,49 @@ function addChatMessage(role, text) {
   bubble.innerHTML = `<strong>${role === 'user' ? 'You' : 'Civic AI'}:</strong> ${escapeHtml(text)}`;
   chatMessages.appendChild(bubble);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function startLiveClock() {
+  if (!liveClock) return;
+  const updateClock = () => {
+    const now = new Date();
+    liveClock.textContent = now.toLocaleTimeString([], { hour12: false });
+  };
+  updateClock();
+  window.setInterval(updateClock, 1000);
+}
+
+function startLiveTicker() {
+  if (!liveMessage) return;
+  const messages = [
+    'Civic AI feed is active and listening.',
+    'Realtime routing online for SOS, complaints, and citizen queries.',
+    'Monitoring city incident trends every 8 seconds.',
+    'AI triage assistant is ready for the next request.',
+  ];
+  let index = 0;
+  liveTickerTimer = window.setInterval(() => {
+    index = (index + 1) % messages.length;
+    liveMessage.textContent = messages[index];
+  }, 4200);
+}
+
+function addCardTilt() {
+  const cards = document.querySelectorAll('.card');
+  cards.forEach((card) => {
+    card.addEventListener('mousemove', (event) => {
+      const rect = card.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const rotateY = ((x / rect.width) - 0.5) * 5;
+      const rotateX = (0.5 - (y / rect.height)) * 5;
+      card.style.transform = `translateY(-3px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
 }
 
 function setupVoiceInput({ button, targetInput, statusElement }) {
@@ -352,6 +398,9 @@ if (chatForm && chatInput && chatMessages) {
 
 loadStats();
 setInterval(loadStats, 8000);
+startLiveClock();
+startLiveTicker();
+addCardTilt();
 
 setupVoiceInput({
   button: reportVoiceBtn,

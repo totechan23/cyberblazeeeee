@@ -15,6 +15,7 @@
   <body>
     <div class="bg-orb orb-1" aria-hidden="true"></div>
     <div class="bg-orb orb-2" aria-hidden="true"></div>
+    <div class="ambient-glow" aria-hidden="true"></div>
 
     <header class="hero shell">
       <div class="hero-copy">
@@ -30,6 +31,12 @@
         <a href="/dashboard.html" class="btn btn-outline">Open Admin Dashboard</a>
       </div>
     </header>
+
+    <section class="shell live-strip" aria-live="polite">
+      <span class="live-dot"></span>
+      <strong id="liveClock">--:--:--</strong>
+      <span id="liveMessage">Civic AI feed is active and listening.</span>
+    </section>
 
     <main class="shell layout">
       <section class="card card-highlight">
