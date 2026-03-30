@@ -115,7 +115,10 @@ reportForm.addEventListener('submit', async (event) => {
     });
 
     const chatbotReply = data.chatbotReply || 'Your request has been received.';
-    feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}\n${chatbotReply}`;
+    const routingLine = data.report.type === 'complaint'
+      ? `\nRouted to: ${data.report.department} (${data.report.complaintType})`
+      : '';
+    feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}${routingLine}\n${chatbotReply}`;
     console.log(`Civic AI Chatbot: ${chatbotReply}`);
     reportForm.reset();
     renderStats(data.stats);

@@ -393,6 +393,30 @@ th {
   color: #bcc4ff;
 }
 
+.tag.fire,
+.tag-fire {
+  background: rgba(255, 77, 109, 0.2);
+  color: #ffb2c1;
+}
+
+.tag.water,
+.tag-water {
+  background: rgba(88, 245, 216, 0.2);
+  color: #baffef;
+}
+
+.tag.electricity,
+.tag-electricity {
+  background: rgba(255, 212, 102, 0.25);
+  color: #ffe39e;
+}
+
+.tag.general,
+.tag-general {
+  background: rgba(255, 255, 255, 0.12);
+  color: #d6ddf5;
+}
+
 .tag.pending {
   background: rgba(255, 255, 255, 0.1);
 }

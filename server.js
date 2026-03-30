@@ -34,6 +34,23 @@ const QUERY_KEYWORDS = [
   'query', 'question', 'clarify', 'information', 'details', 'status', 'update', 'when',
   'where', 'how', 'what', 'why', 'which',
 ];
+const COMPLAINT_ROUTING_RULES = [
+  {
+    complaintType: 'fire',
+    department: 'Fire Department',
+    keywords: ['fire', 'smoke', 'burning', 'blaze', 'flame', 'short circuit'],
+  },
+  {
+    complaintType: 'water',
+    department: 'Water Department',
+    keywords: ['water', 'leak', 'pipeline', 'sewage', 'drainage', 'overflow', 'waterlogging', 'flood'],
+  },
+  {
+    complaintType: 'electricity',
+    department: 'Electrical Department',
+    keywords: ['electricity', 'power', 'electrical', 'streetlight', 'wire', 'transformer', 'blackout'],
+  },
+];
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'is', 'are', 'was', 'were', 'for', 'to', 'of', 'and', 'or', 'in', 'on', 'at', 'it',
   'this', 'that', 'with', 'from', 'my', 'i', 'we', 'you', 'our', 'your', 'be', 'can', 'could', 'should',
@@ -90,6 +107,30 @@ function buildChatbotReply(type, citizenName) {
     query: `💬 ${name}, your query is received. The support team will share an update as soon as possible.`,
   };
   return replies[type] || `✅ ${name}, your request has been recorded.`;
+}
+
+function detectComplaintRouting(message = '') {
+  const text = sanitizeText(message, '').toLowerCase();
+  if (!text) return null;
+
+  const matchedRule = COMPLAINT_ROUTING_RULES
+    .map((rule) => {
+      const hits = rule.keywords.filter((keyword) => text.includes(keyword)).length;
+      return { ...rule, hits };
+    })
+    .sort((a, b) => b.hits - a.hits)[0];
+
+  if (!matchedRule || matchedRule.hits === 0) {
+    return {
+      complaintType: 'general',
+      department: 'General Complaint Cell',
+    };
+  }
+
+  return {
+    complaintType: matchedRule.complaintType,
+    department: matchedRule.department,
+  };
 }
 
 function tokenize(message) {
@@ -285,6 +326,12 @@ const server = http.createServer(async (req, res) => {
         status: 'pending',
         createdAt: new Date().toISOString(),
       };
+
+      if (type === 'complaint') {
+        const routing = detectComplaintRouting(message);
+        report.complaintType = routing.complaintType;
+        report.department = routing.department;
+      }
 
       reports.unshift(report);
       writeReports(reports);

@@ -33,10 +33,14 @@ function renderStats(stats = {}) {
 }
 
 function rowTemplate(report) {
+  const complaintType = report.type === 'complaint' ? (report.complaintType || 'general') : '-';
+  const department = report.type === 'complaint' ? (report.department || 'General Complaint Cell') : '-';
   return `
     <tr>
       <td>${escapeHtml(report.id)}</td>
       <td><span class="tag ${escapeHtml(report.type)}">${escapeHtml(report.type)}</span></td>
+      <td><span class="tag tag-${escapeHtml(complaintType)}">${escapeHtml(complaintType)}</span></td>
+      <td>${escapeHtml(department)}</td>
       <td>${escapeHtml(report.citizenName)}</td>
       <td>${escapeHtml(report.location)}</td>
       <td>${escapeHtml(report.message)}</td>
@@ -54,9 +58,9 @@ async function loadDashboard() {
     ]);
 
     renderStats(stats);
-    reportsTable.innerHTML = reports.map(rowTemplate).join('') || '<tr><td colspan="7">No cases yet</td></tr>';
+    reportsTable.innerHTML = reports.map(rowTemplate).join('') || '<tr><td colspan="9">No cases yet</td></tr>';
   } catch (error) {
-    reportsTable.innerHTML = `<tr><td colspan="7">Unable to load dashboard: ${escapeHtml(error.message)}</td></tr>`;
+    reportsTable.innerHTML = `<tr><td colspan="9">Unable to load dashboard: ${escapeHtml(error.message)}</td></tr>`;
   }
 }
 
@@ -65,7 +69,7 @@ window.toggleStatus = async (id) => {
     await apiFetch(`/api/report/${encodeURIComponent(id)}`, { method: 'PATCH' });
     await loadDashboard();
   } catch (error) {
-    reportsTable.innerHTML = `<tr><td colspan="7">Unable to update status: ${escapeHtml(error.message)}</td></tr>`;
+    reportsTable.innerHTML = `<tr><td colspan="9">Unable to update status: ${escapeHtml(error.message)}</td></tr>`;
   }
 };
 
