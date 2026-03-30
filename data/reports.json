@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "CIV-1774905553269-219",
+    "citizenName": "aryanb",
+    "location": "mgm",
+    "message": "there is no water",
+    "type": "complaint",
+    "status": "resolved",
+    "createdAt": "2026-03-30T21:19:13.269Z"
+  }
+]
