@@ -102,7 +102,7 @@ function detectReportType(message = '', manualType = '') {
 function buildChatbotReply(type, citizenName) {
   const name = (citizenName || 'Citizen').trim() || 'Citizen';
   const replies = {
-    sos: `⚠️ ${name}, your SOS has been registered. Please stay safe. Emergency response is being escalated.`,
+    sos: `⚠️ ${name}, your SOS has been registered. Please stay safe. Emergency response is being escalated. If life is at immediate risk, call 112 now.`,
     complaint: `🙏 ${name}, thanks for reporting this complaint. We have logged it and the civic team will review it soon.`,
     query: `💬 ${name}, your query is received. The support team will share an update as soon as possible.`,
   };
@@ -182,7 +182,7 @@ function buildAssistantReply(prompt, reports) {
   }
 
   if (intent === 'emergency') {
-    return 'This sounds urgent. Use 🚨 SOS immediately and include exact location, nearby landmark, injuries/damage, and callback number. If there is immediate risk to life, contact local emergency services right now.';
+    return 'This sounds urgent. Use 🚨 SOS immediately and include exact location, nearby landmark, injuries/damage, and callback number. If there is immediate risk to life, call 112 right now.';
   }
 
   if (intent === 'complaint') {
