@@ -7,28 +7,34 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="bg-grid" aria-hidden="true"></div>
     <div class="bg-orb orb-1" aria-hidden="true"></div>
     <div class="bg-orb orb-2" aria-hidden="true"></div>
-    <div class="ambient-glow" aria-hidden="true"></div>
+    <div class="bg-orb orb-3" aria-hidden="true"></div>
 
     <header class="hero shell">
       <div class="hero-copy">
-        <p class="badge">SMART MUNICIPAL SUPPORT</p>
-        <h1>Civic AI Command Portal</h1>
+        <p class="badge">AI-POWERED CITY EXPERIENCE</p>
+        <h1>Civic AI Neon Command Portal</h1>
         <p class="subtitle">
-          A modern, AI-powered citizen experience to report local issues, trigger emergency SOS,
-          and chat with an intelligent civic assistant.
+          Report local incidents, trigger emergency SOS, and get instant municipal guidance through
+          a high-visibility, realtime AI interface.
         </p>
+        <div class="hero-pill-row">
+          <span class="hero-pill">Realtime triage</span>
+          <span class="hero-pill">Voice ready</span>
+          <span class="hero-pill">24/7 response</span>
+        </div>
       </div>
       <div class="hero-actions">
         <button id="sosBtn" class="btn btn-sos">🚨 Raise SOS</button>
-        <a href="/dashboard.html" class="btn btn-outline">Open Admin Dashboard</a>
+        <a href="/dashboard.html" class="btn btn-outline">Open Operations Dashboard</a>
       </div>
     </header>
 
@@ -37,6 +43,7 @@
       <strong id="liveClock">--:--:--</strong>
       <span id="liveMessage">Civic AI feed is active and listening.</span>
     </section>
+
     <section id="emergencyContacts" class="shell emergency-contacts" role="status" aria-live="assertive">
       <strong>Emergency Contacts:</strong>
       <span>Police: <b>112</b></span>
@@ -49,7 +56,7 @@
       <section class="card card-highlight">
         <div class="card-title-row">
           <h2>Submit an Issue</h2>
-          <span class="tag tag-query">Realtime Intake</span>
+          <span class="tag tag-query">Smart Intake</span>
         </div>
         <form id="reportForm" class="stacked-form">
           <div class="field-grid">
@@ -62,7 +69,7 @@
               id="reportMessageInput"
               name="message"
               rows="5"
-              placeholder="Describe your concern or question in detail (Civic AI will auto-classify it)"
+              placeholder="Describe your issue in detail. Civic AI auto-classifies and routes it."
             ></textarea>
           </label>
           <div class="voice-row">
@@ -77,7 +84,7 @@
       <section class="card">
         <div class="card-title-row">
           <h2>Live Activity</h2>
-          <span class="tag">Auto-refresh: 8s</span>
+          <span class="tag">Refresh: 8s</span>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
         <div class="bars" id="bars"></div>
@@ -86,15 +93,15 @@
       <section class="card chat-card">
         <div class="card-title-row">
           <h2>AI Civic Chat</h2>
-          <span class="tag tag-query">Assistant Online</span>
+          <span class="tag tag-query">Online</span>
         </div>
-        <p class="subtitle">Ask for triage help, report drafting, or civic service guidance.</p>
+        <p class="subtitle">Ask for emergency advice, complaint drafting, or civic service guidance.</p>
         <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
         <form id="chatForm" class="chat-form">
           <input
             id="chatInput"
             name="prompt"
-            placeholder="Ask Civic AI anything about complaints, SOS, or city services"
+            placeholder="Ask Civic AI about complaints, SOS, or city services"
             autocomplete="off"
             required
           />

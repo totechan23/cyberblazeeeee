@@ -7,20 +7,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="bg-grid" aria-hidden="true"></div>
     <div class="bg-orb orb-1" aria-hidden="true"></div>
     <div class="bg-orb orb-2" aria-hidden="true"></div>
+    <div class="bg-orb orb-3" aria-hidden="true"></div>
 
     <header class="hero shell">
       <div class="hero-copy">
-        <p class="badge">GOVERNMENT CONTROL CENTER</p>
-        <h1>Civic AI Operations Dashboard</h1>
-        <p class="subtitle">Monitor case volume, review incoming reports, and resolve incidents quickly.</p>
+        <p class="badge">CITY CONTROL LAYER</p>
+        <h1>Civic AI Operations Matrix</h1>
+        <p class="subtitle">
+          Track every intake in one interface, monitor live metrics, and close incidents fast with
+          a clean action queue.
+        </p>
       </div>
       <a href="/" class="btn btn-outline">Back to Citizen Portal</a>
     </header>
@@ -29,7 +34,7 @@
       <section class="card">
         <div class="card-title-row">
           <h2>Municipal Metrics</h2>
-          <span class="tag">Live Overview</span>
+          <span class="tag">Live</span>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
       </section>
