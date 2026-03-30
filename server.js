@@ -35,6 +35,10 @@ function normalizeText(value) {
   return String(value || '').trim();
 }
 
+function normalizeType(value) {
+  return normalizeText(value).toLowerCase();
+}
+
 function isSOSMessage(message = '') {
   const text = message.toLowerCase();
 
@@ -42,7 +46,7 @@ function isSOSMessage(message = '') {
 }
 
 function buildChatbotReply(type, citizenName) {
-  const name = (citizenName || 'Citizen').trim() || 'Citizen';
+  const name = normalizeText(citizenName) || 'Citizen';
   const replies = {
     sos: `⚠️ ${name}, your SOS has been registered. Please stay safe. Emergency response is being escalated.`,
     complaint: `🙏 ${name}, thanks for reporting this complaint. We have logged it and the civic team will review it soon.`,
@@ -158,7 +162,7 @@ const server = http.createServer(async (req, res) => {
       const reports = readReports();
 
       const message = normalizeText(body.message);
-      const manualType = body.manualType;
+      const manualType = normalizeType(body.manualType);
       const isEmergency = isSOSMessage(message);
       let type = null;
 
@@ -180,8 +184,8 @@ const server = http.createServer(async (req, res) => {
 
       const report = {
         id: `CIV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        citizenName: (body.citizenName || 'Anonymous').trim(),
-        location: (body.location || 'Not provided').trim(),
+        citizenName: normalizeText(body.citizenName) || 'Anonymous',
+        location: normalizeText(body.location) || 'Not provided',
         message: message || 'SOS button triggered from Civic AI',
         type,
         status: 'pending',

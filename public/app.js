@@ -38,55 +38,59 @@ async function loadStats() {
   renderStats(data);
 }
 
-reportForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  feedback.textContent = 'Submitting...';
-  const formData = new FormData(reportForm);
-  const payload = Object.fromEntries(formData.entries());
+if (reportForm && feedback) {
+  reportForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    feedback.textContent = 'Submitting...';
+    const formData = new FormData(reportForm);
+    const payload = Object.fromEntries(formData.entries());
 
-  const res = await fetch('/api/report', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    const res = await fetch('/api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      feedback.textContent = `Error: ${data.error}`;
+      feedback.style.color = '#ff8f9a';
+      return;
+    }
+
+    const chatbotReply = data.chatbotReply || 'Your request has been received.';
+    feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}\n${chatbotReply}`;
+    feedback.style.color = '#90f5ec';
+    console.log(`Civic AI Chatbot: ${chatbotReply}`);
+    reportForm.reset();
+    renderStats(data.stats);
   });
+}
 
-  const data = await res.json();
-  if (!res.ok) {
-    feedback.textContent = `Error: ${data.error}`;
-    feedback.style.color = '#ff8f9a';
-    return;
-  }
+if (sosBtn && feedback) {
+  sosBtn.addEventListener('click', async () => {
+    const payload = {
+      citizenName: 'SOS Caller',
+      location: 'Unknown',
+      message: 'Emergency alert from SOS button',
+      manualType: 'sos',
+    };
 
-  const chatbotReply = data.chatbotReply || 'Your request has been received.';
-  feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}\n${chatbotReply}`;
-  feedback.style.color = '#90f5ec';
-  console.log(`Civic AI Chatbot: ${chatbotReply}`);
-  reportForm.reset();
-  renderStats(data.stats);
-});
-
-sosBtn.addEventListener('click', async () => {
-  const payload = {
-    citizenName: 'SOS Caller',
-    location: 'Unknown',
-    message: 'Emergency alert from SOS button',
-    manualType: 'sos',
-  };
-
-  const res = await fetch('/api/report', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    const res = await fetch('/api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    const chatbotReply = data.chatbotReply || 'SOS received. Help is on the way.';
+    feedback.textContent = res.ok
+      ? `🚨 SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`
+      : `SOS failed: ${data.error}`;
+    feedback.style.color = res.ok ? '#ff8f9a' : '#ffd166';
+    if (res.ok) console.log(`Civic AI Chatbot: ${chatbotReply}`);
+    if (res.ok) renderStats(data.stats);
   });
-  const data = await res.json();
-  const chatbotReply = data.chatbotReply || 'SOS received. Help is on the way.';
-  feedback.textContent = res.ok
-    ? `🚨 SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`
-    : `SOS failed: ${data.error}`;
-  feedback.style.color = res.ok ? '#ff8f9a' : '#ffd166';
-  if (res.ok) console.log(`Civic AI Chatbot: ${chatbotReply}`);
-  if (res.ok) renderStats(data.stats);
-});
+}
 
 if (chatForm && chatInput && chatLog) {
   chatForm.addEventListener('submit', async (e) => {
@@ -109,5 +113,7 @@ if (chatForm && chatInput && chatLog) {
   });
 }
 
-loadStats();
-setInterval(loadStats, 8000);
+if (statsGrid && bars) {
+  loadStats();
+  setInterval(loadStats, 8000);
+}
