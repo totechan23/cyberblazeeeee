@@ -12,6 +12,7 @@ const reportVoiceStatus = document.getElementById('reportVoiceStatus');
 const chatVoiceBtn = document.getElementById('chatVoiceBtn');
 const chatVoiceStatus = document.getElementById('chatVoiceStatus');
 let sosFlashTimer = null;
+let emergencyVoiceTimer = null;
 
 function escapeHtml(value = '') {
   return String(value)
@@ -46,7 +47,34 @@ function flashSOSScreen() {
   }, 650);
 }
 
-async function raiseSOS(triggerReason = 'Emergency alert from SOS button') {
+function speakEmergencyAlert(message = 'Emergency detected. Sending SOS alert now. Please stay calm and move to a safe location if possible.') {
+  if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance !== 'function') {
+    return;
+  }
+
+  if (emergencyVoiceTimer) {
+    window.clearTimeout(emergencyVoiceTimer);
+    emergencyVoiceTimer = null;
+  }
+
+  window.speechSynthesis.cancel();
+  const utterance = new window.SpeechSynthesisUtterance(message);
+  utterance.lang = 'en-US';
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  // Delay slightly so speech is more reliable right after user actions.
+  emergencyVoiceTimer = window.setTimeout(() => {
+    window.speechSynthesis.speak(utterance);
+    emergencyVoiceTimer = null;
+  }, 100);
+}
+
+async function raiseSOS(
+  triggerReason = 'Emergency alert from SOS button',
+  voiceMessage = 'Emergency detected. Sending SOS alert now. Please stay calm and move to a safe location if possible.',
+) {
   const payload = {
     citizenName: 'SOS Caller',
     location: 'Unknown',
@@ -66,6 +94,7 @@ async function raiseSOS(triggerReason = 'Emergency alert from SOS button') {
   console.log(`Civic AI Chatbot: ${chatbotReply}`);
   renderStats(data.stats);
   flashSOSScreen();
+  speakEmergencyAlert(voiceMessage);
 
   return data;
 }
@@ -221,7 +250,10 @@ if (chatForm && chatInput && chatMessages) {
       if (data.decision?.intent === 'emergency') {
         sosBtn.classList.add('ai-triggered');
         window.setTimeout(() => sosBtn.classList.remove('ai-triggered'), 900);
-        await raiseSOS(`AI-detected emergency from chat: ${prompt}`);
+        await raiseSOS(
+          `AI-detected emergency from chat: ${prompt}`,
+          'Emergency detected from chat. SOS has been triggered automatically.',
+        );
         addChatMessage('assistant', '🚨 I detected an SOS emergency and automatically triggered the SOS alert.');
       }
     } catch (error) {
