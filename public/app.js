@@ -142,8 +142,15 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
 
   let active = false;
   let finalTranscript = '';
-  let permissionChecked = false;
+  let hasMicrophonePermission = false;
   let restartBlockedUntil = 0;
+  const isSecureContext = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+  if (!isSecureContext) {
+    button.disabled = true;
+    statusElement.textContent = 'Voice input requires HTTPS (or localhost).';
+    return;
+  }
 
   async function ensureMicrophonePermission() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -154,17 +161,23 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
     try {
       if (navigator.permissions?.query) {
         const permission = await navigator.permissions.query({ name: 'microphone' });
-        permissionChecked = true;
         if (permission.state === 'denied') {
+          hasMicrophonePermission = false;
           statusElement.textContent = 'Microphone permission is blocked. Enable it in browser settings.';
           return false;
+        }
+        if (permission.state === 'granted') {
+          hasMicrophonePermission = true;
+          return true;
         }
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((track) => track.stop());
+      hasMicrophonePermission = true;
       return true;
     } catch (error) {
+      hasMicrophonePermission = false;
       statusElement.textContent = 'Microphone permission was denied. Please allow access and try again.';
       return false;
     }
@@ -199,6 +212,7 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
     active = false;
     button.classList.remove('listening');
     if (event.error === 'not-allowed') {
+      hasMicrophonePermission = false;
       statusElement.textContent = 'Microphone permission denied. Allow access to use voice input.';
       return;
     }
@@ -233,7 +247,7 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
       return;
     }
 
-    if (!permissionChecked) {
+    if (!hasMicrophonePermission) {
       const hasPermission = await ensureMicrophonePermission();
       if (!hasPermission) return;
     }
