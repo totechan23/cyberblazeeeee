@@ -27,6 +27,7 @@ body {
   min-height: 100vh;
   position: relative;
   transition: box-shadow 0.2s ease;
+  overflow-x: hidden;
 }
 
 body::after {
@@ -55,6 +56,7 @@ body.sos-flash-active::after {
   border-radius: 999px;
   filter: blur(12px);
   opacity: 0.34;
+  animation: orbFloat 10s ease-in-out infinite alternate;
 }
 
 .orb-1 {
@@ -63,6 +65,7 @@ body.sos-flash-active::after {
   background: #7f8bff;
   top: -90px;
   left: -60px;
+  animation-duration: 12s;
 }
 
 .orb-2 {
@@ -71,6 +74,8 @@ body.sos-flash-active::after {
   background: #58f5d8;
   right: -120px;
   bottom: -80px;
+  animation-duration: 14s;
+  animation-delay: -4s;
 }
 
 .shell {
@@ -100,6 +105,7 @@ body.sos-flash-active::after {
   font-size: 0.72rem;
   letter-spacing: 0.1em;
   font-weight: 600;
+  animation: badgePulse 2.2s ease-in-out infinite;
 }
 
 h1 {
@@ -143,6 +149,12 @@ h2 {
   padding: 1.1rem;
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(88, 245, 216, 0.35);
 }
 
 .card-highlight {
@@ -231,6 +243,7 @@ select:focus {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 0.74rem;
+  animation: statBreathe 3.2s ease-in-out infinite;
 }
 
 .stat h3 {
@@ -263,6 +276,16 @@ select:focus {
   font-size: 0.74rem;
   padding-top: 0.45rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 18px rgba(88, 245, 216, 0.2);
+  animation: barPulse 2.6s ease-in-out infinite;
+}
+
+.bar:nth-child(2) {
+  animation-delay: 0.25s;
+}
+
+.bar:nth-child(3) {
+  animation-delay: 0.5s;
 }
 
 #feedback {
@@ -295,6 +318,7 @@ select:focus {
   max-width: min(92%, 760px);
   line-height: 1.34;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: messageRise 0.35s ease;
 }
 
 .chat-bubble.user {
@@ -390,5 +414,65 @@ th {
 
   .field-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+@keyframes orbFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(0, -20px, 0) scale(1.06);
+  }
+}
+
+@keyframes badgePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(88, 245, 216, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(88, 245, 216, 0);
+  }
+}
+
+@keyframes statBreathe {
+  0%,
+  100% {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  50% {
+    border-color: rgba(127, 139, 255, 0.35);
+  }
+}
+
+@keyframes barPulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes messageRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
