@@ -13,7 +13,9 @@ const chatVoiceBtn = document.getElementById('chatVoiceBtn');
 const chatVoiceStatus = document.getElementById('chatVoiceStatus');
 const liveClock = document.getElementById('liveClock');
 const liveMessage = document.getElementById('liveMessage');
+const emergencyContacts = document.getElementById('emergencyContacts');
 let sosFlashTimer = null;
+let emergencyContactsTimer = null;
 let emergencyVoiceTimer = null;
 let liveTickerTimer = null;
 
@@ -48,6 +50,16 @@ function flashSOSScreen() {
     document.body.classList.remove('sos-flash-active');
     sosFlashTimer = null;
   }, 650);
+}
+
+function showEmergencyContacts() {
+  if (!emergencyContacts) return;
+  emergencyContacts.classList.add('active');
+  if (emergencyContactsTimer) window.clearTimeout(emergencyContactsTimer);
+  emergencyContactsTimer = window.setTimeout(() => {
+    emergencyContacts.classList.remove('active');
+    emergencyContactsTimer = null;
+  }, 5000);
 }
 
 function speakEmergencyAlert(message = 'Emergency detected. Sending SOS alert now. Please stay calm and move to a safe location if possible.') {
@@ -97,6 +109,7 @@ async function raiseSOS(
   console.log(`Civic AI Chatbot: ${chatbotReply}`);
   renderStats(data.stats);
   flashSOSScreen();
+  showEmergencyContacts();
   speakEmergencyAlert(voiceMessage);
 
   return data;

@@ -123,6 +123,28 @@ body.sos-flash-active::after {
   animation: livePing 1.8s ease-out infinite;
 }
 
+.emergency-contacts {
+  display: none;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 0.72rem 0.9rem;
+  border: 1px solid rgba(255, 77, 109, 0.55);
+  border-radius: 14px;
+  background: rgba(58, 9, 22, 0.8);
+  color: #ffe3e8;
+  box-shadow: 0 0 0 1px rgba(255, 77, 109, 0.25), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.emergency-contacts.active {
+  display: flex;
+  animation: emergencyPulse 1s ease-in-out infinite alternate;
+}
+
+.emergency-contacts b {
+  color: #fff;
+}
+
 .hero-copy {
   max-width: 760px;
 }
@@ -538,6 +560,15 @@ th {
   }
   100% {
     box-shadow: 0 0 0 12px rgba(88, 245, 216, 0);
+  }
+}
+
+@keyframes emergencyPulse {
+  from {
+    border-color: rgba(255, 77, 109, 0.45);
+  }
+  to {
+    border-color: rgba(255, 182, 107, 0.75);
   }
 }
 
