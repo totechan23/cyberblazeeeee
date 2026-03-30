@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { spawnSync } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -130,6 +131,29 @@ function buildAssistantReply(prompt, reports) {
   }
 
   return `I can help with SOS escalation, complaint drafting, and query handling. Current system load: ${stats.total} total reports with ${stats.pending} pending. Ask for "stats", "file complaint steps", or "SOS help" for tailored guidance.`;
+}
+
+function runPythonDecisionEngine(prompt, reports) {
+  const stats = buildStats(reports);
+  const payload = JSON.stringify({ prompt: sanitizeText(prompt, ''), stats });
+  const aiScriptPath = path.join(__dirname, 'ai_brain.py');
+
+  const result = spawnSync('python3', [aiScriptPath], {
+    input: payload,
+    encoding: 'utf-8',
+    timeout: 3000,
+  });
+
+  if (result.error || result.status !== 0) {
+    throw new Error(result.error ? result.error.message : `Python AI exited with status ${result.status}`);
+  }
+
+  const parsed = JSON.parse(result.stdout || '{}');
+  if (!parsed.reply || !parsed.decision) {
+    throw new Error('Python AI returned an invalid response');
+  }
+
+  return parsed;
 }
 
 function buildStats(reports) {
@@ -272,8 +296,25 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await parseBody(req);
       const reports = readReports();
-      const reply = buildAssistantReply(body.prompt, reports);
-      sendJSON(res, 200, { success: true, reply, timestamp: new Date().toISOString() });
+      let aiResponse;
+      try {
+        aiResponse = runPythonDecisionEngine(body.prompt, reports);
+      } catch {
+        aiResponse = {
+          reply: buildAssistantReply(body.prompt, reports),
+          decision: {
+            intent: 'fallback',
+            confidence: 0,
+            next_actions: ['local_js_fallback'],
+          },
+        };
+      }
+      sendJSON(res, 200, {
+        success: true,
+        reply: aiResponse.reply,
+        decision: aiResponse.decision,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
       sendJSON(res, 400, { error: error.message });
     }

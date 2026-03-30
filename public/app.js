@@ -134,7 +134,11 @@ if (chatForm && chatInput && chatMessages) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
-      addChatMessage('assistant', data.reply || 'I am here to help with civic reports and SOS support.');
+      const reply = data.reply || 'I am here to help with civic reports and SOS support.';
+      const decision = data.decision
+        ? `\nDecision: ${data.decision.intent} (confidence ${data.decision.confidence})\nNext actions: ${(data.decision.next_actions || []).join(', ')}`
+        : '';
+      addChatMessage('assistant', `${reply}${decision}`);
     } catch (error) {
       addChatMessage('assistant', `Sorry, chat is unavailable right now: ${error.message}`);
     }
