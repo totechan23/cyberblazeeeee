@@ -60,6 +60,33 @@ function buildChatbotReply(type, citizenName) {
   return replies[type] || `✅ ${name}, your request has been recorded.`;
 }
 
+function buildAssistantReply(prompt, reports) {
+  const message = sanitizeText(prompt, '').toLowerCase();
+  const stats = buildStats(reports);
+
+  if (!message) {
+    return 'Please share your question and I will help with complaints, SOS, or queries.';
+  }
+
+  if (message.includes('sos') || message.includes('emergency') || message.includes('urgent')) {
+    return 'If this is urgent, press the 🚨 SOS button now. Include location and a short description so responders can act faster.';
+  }
+
+  if (message.includes('complaint')) {
+    return 'To file a complaint, choose "Complaint", add your location and details, then submit. You can track progress from the government dashboard.';
+  }
+
+  if (message.includes('query') || message.includes('question')) {
+    return 'For a civic query, select "Query" in the form and provide full details so the team can respond clearly.';
+  }
+
+  if (message.includes('stats') || message.includes('status') || message.includes('reports')) {
+    return `Current activity: total ${stats.total}, pending ${stats.pending}, resolved ${stats.resolved}, SOS ${stats.sos}, complaints ${stats.complaint}, queries ${stats.query}.`;
+  }
+
+  return 'I can help you submit complaints, raise SOS alerts, and understand civic report status. Ask me about any of these.';
+}
+
 function buildStats(reports) {
   const stats = {
     total: reports.length,
@@ -193,6 +220,18 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/api/reports') {
     const reports = readReports();
     sendJSON(res, 200, reports);
+    return;
+  }
+
+  if (req.method === 'POST' && req.url === '/api/chat') {
+    try {
+      const body = await parseBody(req);
+      const reports = readReports();
+      const reply = buildAssistantReply(body.prompt, reports);
+      sendJSON(res, 200, { success: true, reply, timestamp: new Date().toISOString() });
+    } catch (error) {
+      sendJSON(res, 400, { error: error.message });
+    }
     return;
   }
 
