@@ -149,24 +149,24 @@ def summarize_backlog(stats: dict) -> str:
 def build_reply(prompt: str, stats: dict, decision: Decision) -> str:
     if not prompt.strip():
         return (
-            "Tell me what you need help with. I can triage emergency situations, guide complaint filing, "
-            "answer civic queries, and summarize live report trends."
+            "Hey friend — tell me what you need help with. I can triage emergencies, help draft complaints, "
+            "answer civic questions, and summarize live report trends."
         )
 
     if decision.intent == "emergency":
         return (
-            "This sounds urgent. Use SOS immediately and share exact location, nearby landmark, injuries/damage, "
-            "and callback number. If there is immediate risk to life, contact local emergency services now."
+            "Hey, this sounds urgent. Please use SOS right away and share your exact location, nearby landmark, "
+            "any injuries/damage, and a callback number. If there's immediate danger to life, call local emergency services now."
         )
 
     if decision.intent == "complaint":
         return (
-            "For a strong complaint include: (1) exact location, (2) issue type, (3) citizen impact, and "
-            "(4) photo/reference details. I will prioritize routing once these are shared."
+            "Got you. For a strong complaint, include: (1) exact location, (2) issue type, (3) impact on people, "
+            "and (4) photo/reference details. Share those and I’ll help prioritize routing."
         )
 
     if decision.intent == "query":
-        return "For civic queries, share context, your exact question, and any case ID for faster department response."
+        return "Sure thing — share the context, your exact question, and any case ID so I can help you get a faster response."
 
     if decision.intent == "stats":
         return (
@@ -177,8 +177,8 @@ def build_reply(prompt: str, stats: dict, decision: Decision) -> str:
         )
 
     return (
-        "I can autonomously choose next steps for SOS escalation, complaint drafting, and query handling. "
-        "Ask for 'stats', 'file complaint steps', or 'SOS help' for a targeted plan."
+        "I can help with SOS escalation, complaint drafting, and civic query handling. "
+        "Try asking for 'stats', 'file complaint steps', or 'SOS help' and I’ll walk you through it."
     )
 
 
