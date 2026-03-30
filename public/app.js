@@ -6,6 +6,7 @@ const sosBtn = document.getElementById('sosBtn');
 const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatMessages = document.getElementById('chatMessages');
+let sosFlashTimer = null;
 
 function escapeHtml(value = '') {
   return String(value)
@@ -27,6 +28,39 @@ async function apiFetch(url, options) {
   if (!response.ok) {
     throw new Error(data.error || 'Request failed');
   }
+
+  return data;
+}
+
+function flashSOSScreen() {
+  document.body.classList.add('sos-flash-active');
+  if (sosFlashTimer) window.clearTimeout(sosFlashTimer);
+  sosFlashTimer = window.setTimeout(() => {
+    document.body.classList.remove('sos-flash-active');
+    sosFlashTimer = null;
+  }, 650);
+}
+
+async function raiseSOS(triggerReason = 'Emergency alert from SOS button') {
+  const payload = {
+    citizenName: 'SOS Caller',
+    location: 'Unknown',
+    message: triggerReason,
+    manualType: 'sos',
+  };
+
+  const data = await apiFetch('/api/report', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const chatbotReply = data.chatbotReply || 'SOS received. Help is on the way.';
+  feedback.textContent = `🚨 SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`;
+  feedback.style.color = '#ff8f9a';
+  console.log(`Civic AI Chatbot: ${chatbotReply}`);
+  renderStats(data.stats);
+  flashSOSScreen();
 
   return data;
 }
@@ -92,25 +126,8 @@ reportForm.addEventListener('submit', async (event) => {
 });
 
 sosBtn.addEventListener('click', async () => {
-  const payload = {
-    citizenName: 'SOS Caller',
-    location: 'Unknown',
-    message: 'Emergency alert from SOS button',
-    manualType: 'sos',
-  };
-
   try {
-    const data = await apiFetch('/api/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const chatbotReply = data.chatbotReply || 'SOS received. Help is on the way.';
-    feedback.textContent = `🚨 SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`;
-    feedback.style.color = '#ff8f9a';
-    console.log(`Civic AI Chatbot: ${chatbotReply}`);
-    renderStats(data.stats);
+    await raiseSOS('Emergency alert from SOS button');
   } catch (error) {
     feedback.textContent = `SOS failed: ${error.message}`;
     feedback.style.color = '#ffd166';
@@ -139,6 +156,13 @@ if (chatForm && chatInput && chatMessages) {
         ? `\nDecision: ${data.decision.intent} (confidence ${data.decision.confidence})\nNext actions: ${(data.decision.next_actions || []).join(', ')}`
         : '';
       addChatMessage('assistant', `${reply}${decision}`);
+
+      if (data.decision?.intent === 'emergency') {
+        sosBtn.classList.add('ai-triggered');
+        window.setTimeout(() => sosBtn.classList.remove('ai-triggered'), 900);
+        await raiseSOS(`AI-detected emergency from chat: ${prompt}`);
+        addChatMessage('assistant', '🚨 I detected an SOS emergency and automatically triggered the SOS alert.');
+      }
     } catch (error) {
       addChatMessage('assistant', `Sorry, chat is unavailable right now: ${error.message}`);
     }
