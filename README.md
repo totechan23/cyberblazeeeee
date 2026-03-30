@@ -5,6 +5,7 @@ A lightweight Node.js civic reporting app for:
 - Complaints
 - Citizen queries
 - SOS emergency alerts
+- Python-powered AI decision engine for chat guidance
 
 It includes:
 
@@ -20,6 +21,8 @@ npm start
 ```
 
 Then open `http://localhost:3000`.
+
+> Requires `python3` in your PATH for `/api/chat` intelligent decision mode.
 
 ## API
 
