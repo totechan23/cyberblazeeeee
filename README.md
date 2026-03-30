@@ -34,5 +34,5 @@ Then open `http://localhost:3000`.
 
 ## Notes
 
-- SOS can be auto-detected from emergency keywords in the message.
+- Civic AI auto-classifies each report as SOS, complaint, or query from the message text (manual selection is optional for API clients).
 - Basic input hardening and output escaping are implemented to reduce malformed input and XSS risks.

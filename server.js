@@ -26,6 +26,14 @@ const SOS_KEYWORDS = [
 ];
 
 const VALID_TYPES = new Set(['sos', 'complaint', 'query']);
+const COMPLAINT_KEYWORDS = [
+  'complaint', 'issue', 'problem', 'broken', 'damage', 'garbage', 'drainage', 'streetlight',
+  'pothole', 'sewage', 'overflow', 'leak', 'waterlogging', 'blocked', 'illegal', 'encroachment',
+];
+const QUERY_KEYWORDS = [
+  'query', 'question', 'clarify', 'information', 'details', 'status', 'update', 'when',
+  'where', 'how', 'what', 'why', 'which',
+];
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'is', 'are', 'was', 'were', 'for', 'to', 'of', 'and', 'or', 'in', 'on', 'at', 'it',
   'this', 'that', 'with', 'from', 'my', 'i', 'we', 'you', 'our', 'your', 'be', 'can', 'could', 'should',
@@ -54,6 +62,24 @@ function sanitizeText(value, fallback) {
 function isSOSMessage(message = '') {
   const text = message.toLowerCase();
   return SOS_KEYWORDS.some((keyword) => text.includes(keyword));
+}
+
+function detectReportType(message = '', manualType = '') {
+  const normalizedManualType = sanitizeText(manualType, '').toLowerCase();
+  if (VALID_TYPES.has(normalizedManualType)) return normalizedManualType;
+
+  const text = sanitizeText(message, '').toLowerCase();
+  if (!text) return null;
+  if (isSOSMessage(text)) return 'sos';
+
+  const complaintHits = COMPLAINT_KEYWORDS.filter((keyword) => text.includes(keyword)).length;
+  const queryHits = QUERY_KEYWORDS.filter((keyword) => text.includes(keyword)).length;
+  const hasQuestionMark = text.includes('?');
+
+  if (complaintHits > queryHits) return 'complaint';
+  if (queryHits > complaintHits) return 'query';
+  if (hasQuestionMark) return 'query';
+  return 'complaint';
 }
 
 function buildChatbotReply(type, citizenName) {
@@ -238,14 +264,10 @@ const server = http.createServer(async (req, res) => {
 
       const message = sanitizeText(body.message, '');
       const manualType = sanitizeText(body.manualType, '').toLowerCase();
-      const isEmergency = isSOSMessage(message);
-      let type = null;
-
-      if (VALID_TYPES.has(manualType)) type = manualType;
-      else if (isEmergency) type = 'sos';
+      const type = detectReportType(message, manualType);
 
       if (!type) {
-        sendJSON(res, 400, { error: 'Please select Complaint or Query. System only auto-detects SOS.' });
+        sendJSON(res, 400, { error: 'Message is required so Civic AI can auto-detect the report type.' });
         return;
       }
 
