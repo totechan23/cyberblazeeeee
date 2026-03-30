@@ -6,6 +6,11 @@ const sosBtn = document.getElementById('sosBtn');
 const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatMessages = document.getElementById('chatMessages');
+const reportMessageInput = document.getElementById('reportMessageInput');
+const reportVoiceBtn = document.getElementById('reportVoiceBtn');
+const reportVoiceStatus = document.getElementById('reportVoiceStatus');
+const chatVoiceBtn = document.getElementById('chatVoiceBtn');
+const chatVoiceStatus = document.getElementById('chatVoiceStatus');
 let sosFlashTimer = null;
 
 function escapeHtml(value = '') {
@@ -88,6 +93,59 @@ function addChatMessage(role, text) {
   bubble.innerHTML = `<strong>${role === 'user' ? 'You' : 'Civic AI'}:</strong> ${escapeHtml(text)}`;
   chatMessages.appendChild(bubble);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function setupVoiceInput({ button, targetInput, statusElement }) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!button || !targetInput || !statusElement) return;
+
+  if (!SpeechRecognition) {
+    button.disabled = true;
+    statusElement.textContent = 'Voice input is not supported in this browser.';
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+
+  let active = false;
+
+  recognition.onstart = () => {
+    active = true;
+    button.classList.add('listening');
+    statusElement.textContent = 'Listening… speak now.';
+  };
+
+  recognition.onresult = (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      transcript += event.results[i][0].transcript;
+    }
+    targetInput.value = transcript.trim();
+  };
+
+  recognition.onend = () => {
+    active = false;
+    button.classList.remove('listening');
+    statusElement.textContent = targetInput.value ? 'Voice captured.' : 'No speech detected.';
+  };
+
+  recognition.onerror = (event) => {
+    active = false;
+    button.classList.remove('listening');
+    statusElement.textContent = `Voice error: ${event.error}`;
+  };
+
+  button.addEventListener('click', () => {
+    if (active) {
+      recognition.stop();
+      return;
+    }
+    statusElement.textContent = '';
+    recognition.start();
+  });
 }
 
 async function loadStats() {
@@ -174,3 +232,15 @@ if (chatForm && chatInput && chatMessages) {
 
 loadStats();
 setInterval(loadStats, 8000);
+
+setupVoiceInput({
+  button: reportVoiceBtn,
+  targetInput: reportMessageInput,
+  statusElement: reportVoiceStatus,
+});
+
+setupVoiceInput({
+  button: chatVoiceBtn,
+  targetInput: chatInput,
+  statusElement: chatVoiceStatus,
+});

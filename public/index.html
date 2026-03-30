@@ -45,11 +45,16 @@
           <label>
             Message
             <textarea
+              id="reportMessageInput"
               name="message"
               rows="5"
               placeholder="Describe your concern or question in detail (Civic AI will auto-classify it)"
             ></textarea>
           </label>
+          <div class="voice-row">
+            <button id="reportVoiceBtn" class="btn btn-voice" type="button">🎤 Voice Input</button>
+            <span id="reportVoiceStatus" class="voice-status" aria-live="polite"></span>
+          </div>
           <button class="btn" type="submit">Submit to Civic AI</button>
         </form>
         <p id="feedback"></p>
@@ -79,8 +84,10 @@
             autocomplete="off"
             required
           />
+          <button id="chatVoiceBtn" class="btn btn-voice" type="button">🎤 Voice</button>
           <button class="btn" type="submit">Send</button>
         </form>
+        <p id="chatVoiceStatus" class="voice-status" aria-live="polite"></p>
       </section>
     </main>
 
