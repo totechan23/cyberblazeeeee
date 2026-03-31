@@ -11,6 +11,10 @@ const reportVoiceBtn = document.getElementById('reportVoiceBtn');
 const reportVoiceStatus = document.getElementById('reportVoiceStatus');
 const chatVoiceBtn = document.getElementById('chatVoiceBtn');
 const chatVoiceStatus = document.getElementById('chatVoiceStatus');
+const locationAccessBtn = document.getElementById('locationAccessBtn');
+const locationStatus = document.getElementById('locationStatus');
+const locationInput = document.getElementById('locationInput');
+const incidentMap = document.getElementById('incidentMap');
 const liveClock = document.getElementById('liveClock');
 const liveMessage = document.getElementById('liveMessage');
 const emergencyContacts = document.getElementById('emergencyContacts');
@@ -180,6 +184,78 @@ function addCardTilt() {
     card.addEventListener('mouseleave', () => {
       card.style.transform = '';
     });
+  });
+}
+
+function updateIncidentMap(query) {
+  if (!incidentMap || !query) return;
+  incidentMap.src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+}
+
+async function reverseGeocode(lat, lng) {
+  const endpoint = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`;
+  const response = await fetch(endpoint, {
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error('Could not fetch address from coordinates.');
+  }
+
+  const data = await response.json();
+  return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+function setupLocationAccess() {
+  if (!locationAccessBtn || !locationStatus) return;
+
+  if (!navigator.geolocation) {
+    locationAccessBtn.disabled = true;
+    locationStatus.textContent = 'Geolocation is not supported in this browser.';
+    return;
+  }
+
+  locationAccessBtn.addEventListener('click', () => {
+    locationStatus.textContent = 'Requesting location access...';
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const coordinateText = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        const fallbackLabel = `Lat ${coordinateText}`;
+
+        try {
+          const readableAddress = await reverseGeocode(latitude, longitude);
+          if (locationInput) {
+            locationInput.value = readableAddress;
+          }
+          updateIncidentMap(`${latitude},${longitude}`);
+          locationStatus.textContent = 'Location access granted. Map centered on your current position.';
+        } catch {
+          if (locationInput) {
+            locationInput.value = fallbackLabel;
+          }
+          updateIncidentMap(`${latitude},${longitude}`);
+          locationStatus.textContent = 'Location captured with coordinates. Address lookup is unavailable right now.';
+        }
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          locationStatus.textContent = 'Location permission denied. Enable location access and try again.';
+          return;
+        }
+        if (error.code === error.POSITION_UNAVAILABLE) {
+          locationStatus.textContent = 'Location unavailable. Please try again in an open area.';
+          return;
+        }
+        if (error.code === error.TIMEOUT) {
+          locationStatus.textContent = 'Location request timed out. Please retry.';
+          return;
+        }
+        locationStatus.textContent = 'Unable to get your location right now.';
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
   });
 }
 
@@ -419,6 +495,7 @@ setInterval(loadStats, 8000);
 startLiveClock();
 startLiveTicker();
 addCardTilt();
+setupLocationAccess();
 
 setupVoiceInput({
   button: reportVoiceBtn,
