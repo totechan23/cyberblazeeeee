@@ -104,9 +104,9 @@ async function raiseSOS(
   });
 
   const chatbotReply = data.chatbotReply || 'SOS received. Help is on the way.';
-  feedback.textContent = `🚨 SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`;
+  feedback.textContent = `🚨 Flagship SOS raised successfully. Case ID ${data.report.id}\n${chatbotReply}`;
   feedback.style.color = '#ff8f9a';
-  console.log(`Civic AI Chatbot: ${chatbotReply}`);
+  console.log(`Civic AI Flagship Chatbot: ${chatbotReply}`);
   renderStats(data.stats);
   flashSOSScreen();
   showEmergencyContacts();
@@ -135,7 +135,7 @@ function addChatMessage(role, text) {
   if (!chatMessages) return;
   const bubble = document.createElement('div');
   bubble.className = `chat-bubble ${role}`;
-  bubble.innerHTML = `<strong>${role === 'user' ? 'You' : 'Civic AI'}:</strong> ${escapeHtml(text)}`;
+  bubble.innerHTML = `<strong>${role === 'user' ? 'You' : 'Civic AI Flagship'}:</strong> ${escapeHtml(text)}`;
   chatMessages.appendChild(bubble);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -153,8 +153,8 @@ function startLiveClock() {
 function startLiveTicker() {
   if (!liveMessage) return;
   const messages = [
-    'Civic AI feed is active and listening.',
-    'Realtime routing online for SOS, complaints, and citizen queries.',
+    'Civic AI Flagship feed is active and listening.',
+    'Flagship realtime routing online for SOS, complaints, and citizen queries.',
     'Monitoring city incident trends every 8 seconds.',
     'AI triage assistant is ready for the next request.',
   ];
@@ -358,7 +358,7 @@ reportForm.addEventListener('submit', async (event) => {
       ? `\nRouted to: ${data.report.department} (${data.report.complaintType})`
       : '';
     feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}${routingLine}\n${chatbotReply}`;
-    console.log(`Civic AI Chatbot: ${chatbotReply}`);
+    console.log(`Civic AI Flagship Chatbot: ${chatbotReply}`);
     reportForm.reset();
     renderStats(data.stats);
   } catch (error) {
@@ -377,7 +377,7 @@ sosBtn.addEventListener('click', async () => {
 });
 
 if (chatForm && chatInput && chatMessages) {
-  addChatMessage('assistant', 'Hello! I am Civic AI. I can help with emergencies and city services, and I can also chat about general topics like writing, coding, planning, and ideas.');
+  addChatMessage('assistant', 'Hello! I am Civic AI Flagship. I can help with emergencies and city services, and I can also chat about general topics like writing, coding, planning, and ideas.');
 
   chatForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -393,7 +393,7 @@ if (chatForm && chatInput && chatMessages) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
-      const reply = data.reply || 'I can help with civic reports, SOS support, and general questions too.';
+      const reply = data.reply || 'I can help with flagship civic reports, SOS support, and general questions too.';
       const decision = data.decision
         ? `\nDecision: ${data.decision.intent} (confidence ${data.decision.confidence})\nNext actions: ${(data.decision.next_actions || []).join(', ')}`
         : '';
