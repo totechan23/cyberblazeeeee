@@ -55,7 +55,7 @@
     <main class="shell layout">
       <section class="card card-highlight">
         <div class="card-title-row">
-          <h2>Submit an Issue</h2>
+          <h2>Unified Issue + AI Chat</h2>
           <span class="tag tag-query">Smart Intake</span>
         </div>
         <form id="reportForm" class="stacked-form">
@@ -84,24 +84,13 @@
             <button id="reportVoiceBtn" class="btn btn-voice" type="button">🎤 Voice Input</button>
             <span id="reportVoiceStatus" class="voice-status" aria-live="polite"></span>
           </div>
-          <button class="btn" type="submit">Submit to Flagship AI</button>
+          <div class="action-row">
+            <button class="btn" type="submit">Submit Issue</button>
+            <button id="askAiBtn" class="btn btn-outline" type="button">Ask AI</button>
+          </div>
         </form>
         <p id="feedback"></p>
-      </section>
-
-      <section class="card chat-card">
-        <div class="card-title-row">
-          <h2>Flagship AI Chat</h2>
-          <span class="tag tag-query">Online</span>
-        </div>
-        <p class="subtitle">Ask anything — from everyday questions to writing, coding, planning, and civic support.</p>
         <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-        <form id="chatForm" class="chat-form shared-input">
-          <p class="chat-shared-note">Using the shared Issue / AI Prompt field in the Submit an Issue card.</p>
-          <button id="chatVoiceBtn" class="btn btn-voice" type="button">🎤 Voice</button>
-          <button class="btn" type="submit">Send</button>
-        </form>
-        <p id="chatVoiceStatus" class="voice-status" aria-live="polite"></p>
       </section>
       <section class="card live-card">
         <div class="card-title-row">
