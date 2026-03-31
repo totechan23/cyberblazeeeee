@@ -4,9 +4,8 @@ const statsGrid = document.getElementById('statsGrid');
 const bars = document.getElementById('bars');
 const sosBtn = document.getElementById('sosBtn');
 const chatForm = document.getElementById('chatForm');
-const chatInput = document.getElementById('chatInput');
 const chatMessages = document.getElementById('chatMessages');
-const reportMessageInput = document.getElementById('reportMessageInput');
+const sharedMessageInput = document.getElementById('sharedMessageInput');
 const reportVoiceBtn = document.getElementById('reportVoiceBtn');
 const reportVoiceStatus = document.getElementById('reportVoiceStatus');
 const chatVoiceBtn = document.getElementById('chatVoiceBtn');
@@ -452,16 +451,16 @@ sosBtn.addEventListener('click', async () => {
   }
 });
 
-if (chatForm && chatInput && chatMessages) {
+if (chatForm && sharedMessageInput && chatMessages) {
   addChatMessage('assistant', 'Hello! I am Civic AI Flagship. I can help with emergencies and city services, and I can also chat about general topics like writing, coding, planning, and ideas.');
 
   chatForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const prompt = chatInput.value.trim();
+    const prompt = sharedMessageInput.value.trim();
     if (!prompt) return;
 
     addChatMessage('user', prompt);
-    chatInput.value = '';
+    sharedMessageInput.value = '';
 
     try {
       const data = await apiFetch('/api/chat', {
@@ -499,12 +498,12 @@ setupLocationAccess();
 
 setupVoiceInput({
   button: reportVoiceBtn,
-  targetInput: reportMessageInput,
+  targetInput: sharedMessageInput,
   statusElement: reportVoiceStatus,
 });
 
 setupVoiceInput({
   button: chatVoiceBtn,
-  targetInput: chatInput,
+  targetInput: sharedMessageInput,
   statusElement: chatVoiceStatus,
 });
