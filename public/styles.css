@@ -421,6 +421,10 @@ select:focus {
 }
 
 .chat-card {
+  min-height: 100%;
+}
+
+.live-card {
   grid-column: 1 / -1;
 }
 
