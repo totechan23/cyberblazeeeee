@@ -44,26 +44,6 @@
       <span id="liveMessage">Civic AI feed is active and listening.</span>
     </section>
 
-    <section class="shell map-panel" aria-label="India map">
-      <div class="card map-card">
-        <div class="card-title-row">
-          <h2>India Map</h2>
-          <span class="tag">National View</span>
-        </div>
-        <div class="map-frame-wrap">
-          <iframe
-            title="India Map"
-            src="https://www.google.com/maps?q=India&output=embed"
-            loading="lazy"
-            allowfullscreen
-          ></iframe>
-        </div>
-        <a class="btn map-btn" href="https://www.google.com/maps/place/India" target="_blank" rel="noopener noreferrer">
-          Open Full India Map
-        </a>
-      </div>
-    </section>
-
     <section id="emergencyContacts" class="shell emergency-contacts" role="status" aria-live="assertive">
       <strong>Emergency Contacts:</strong>
       <span>Police: <b>112</b></span>
@@ -101,15 +81,6 @@
         <p id="feedback"></p>
       </section>
 
-      <section class="card">
-        <div class="card-title-row">
-          <h2>Live Activity</h2>
-          <span class="tag">Refresh: 8s</span>
-        </div>
-        <div class="stats-grid" id="statsGrid"></div>
-        <div class="bars" id="bars"></div>
-      </section>
-
       <section class="card chat-card">
         <div class="card-title-row">
           <h2>AI Civic Chat</h2>
@@ -130,7 +101,36 @@
         </form>
         <p id="chatVoiceStatus" class="voice-status" aria-live="polite"></p>
       </section>
+      <section class="card live-card">
+        <div class="card-title-row">
+          <h2>Live Activity</h2>
+          <span class="tag">Refresh: 8s</span>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="bars" id="bars"></div>
+      </section>
     </main>
+
+    <section class="shell map-panel" aria-label="India map">
+      <div class="card map-card">
+        <div class="card-title-row">
+          <h2>India Map</h2>
+          <span class="tag">National View</span>
+        </div>
+        <div class="map-frame-wrap">
+          <iframe
+            title="India Map"
+            src="https://www.google.com/maps?q=India&output=embed"
+            loading="lazy"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <a class="btn map-btn" href="https://www.google.com/maps/place/India" target="_blank" rel="noopener noreferrer">
+          Open Full India Map
+        </a>
+      </div>
+    </section>
+
 
     <script src="app.js"></script>
   </body>
