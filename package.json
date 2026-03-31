@@ -1,7 +1,7 @@
 {
-  "name": "civic-ai",
+  "name": "civic-ai-flagship",
   "version": "1.0.0",
-  "description": "Civic AI municipal complaint, SOS, and query management",
+  "description": "Civic AI Flagship municipal complaint, SOS, and query management",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

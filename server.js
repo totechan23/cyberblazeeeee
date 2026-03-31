@@ -312,7 +312,7 @@ const server = http.createServer(async (req, res) => {
       const type = detectReportType(message, manualType);
 
       if (!type) {
-        sendJSON(res, 400, { error: 'Message is required so Civic AI can auto-detect the report type.' });
+        sendJSON(res, 400, { error: 'Message is required so Civic AI Flagship can auto-detect the report type.' });
         return;
       }
 
@@ -325,7 +325,7 @@ const server = http.createServer(async (req, res) => {
         id: `CIV-${crypto.randomUUID()}`,
         citizenName: sanitizeText(body.citizenName, 'Anonymous'),
         location: sanitizeText(body.location, 'Not provided'),
-        message: message || 'SOS button triggered from Civic AI',
+        message: message || 'SOS button triggered from Civic AI Flagship',
         type,
         status: 'pending',
         createdAt: new Date().toISOString(),
@@ -414,5 +414,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Civic AI server running on http://localhost:${PORT}`);
+  console.log(`Civic AI Flagship server running on http://localhost:${PORT}`);
 });
