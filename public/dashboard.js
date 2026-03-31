@@ -34,11 +34,34 @@ function renderStats(stats = {}) {
     .join('');
 }
 
-function rowTemplate(report) {
+function buildComplaintPriorityMap(complaints = []) {
+  const complaintCountByType = complaints.reduce((acc, report) => {
+    const complaintType = report.complaintType || 'general';
+    acc[complaintType] = (acc[complaintType] || 0) + 1;
+    return acc;
+  }, {});
+
+  const sortedComplaintTypes = Object.entries(complaintCountByType)
+    .sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return a[0].localeCompare(b[0]);
+    })
+    .map(([complaintType]) => complaintType);
+
+  return sortedComplaintTypes.reduce((acc, complaintType, index) => {
+    acc[complaintType] = index + 1;
+    return acc;
+  }, {});
+}
+
+function rowTemplate(report, options = {}) {
+  const { complaintPriorityMap = {} } = options;
   const complaintType = report.type === 'complaint' ? (report.complaintType || 'general') : '-';
   const department = report.type === 'complaint' ? (report.department || 'General Complaint Cell') : '-';
+  const priority = report.type === 'complaint' ? (complaintPriorityMap[complaintType] || '-') : '-';
   return `
     <tr>
+      <td>${escapeHtml(priority)}</td>
       <td>${escapeHtml(report.id)}</td>
       <td><span class="tag ${escapeHtml(report.type)}">${escapeHtml(report.type)}</span></td>
       <td><span class="tag tag-${escapeHtml(complaintType)}">${escapeHtml(complaintType)}</span></td>
@@ -65,12 +88,22 @@ async function loadDashboard() {
       complaint: reports.filter((report) => report.type === 'complaint'),
       query: reports.filter((report) => report.type === 'query'),
     };
+    const complaintPriorityMap = buildComplaintPriorityMap(byType.complaint);
+    const prioritizedComplaints = [...byType.complaint].sort((a, b) => {
+      const aType = a.complaintType || 'general';
+      const bType = b.complaintType || 'general';
+      const aPriority = complaintPriorityMap[aType] || Number.MAX_SAFE_INTEGER;
+      const bPriority = complaintPriorityMap[bType] || Number.MAX_SAFE_INTEGER;
+      return aPriority - bPriority;
+    });
 
-    sosTable.innerHTML = byType.sos.map(rowTemplate).join('') || '<tr><td colspan="9">No SOS cases</td></tr>';
-    complaintsTable.innerHTML = byType.complaint.map(rowTemplate).join('') || '<tr><td colspan="9">No complaints</td></tr>';
-    queriesTable.innerHTML = byType.query.map(rowTemplate).join('') || '<tr><td colspan="9">No queries</td></tr>';
+    sosTable.innerHTML = byType.sos.map((report) => rowTemplate(report)).join('') || '<tr><td colspan="10">No SOS cases</td></tr>';
+    complaintsTable.innerHTML = prioritizedComplaints
+      .map((report) => rowTemplate(report, { complaintPriorityMap }))
+      .join('') || '<tr><td colspan="10">No complaints</td></tr>';
+    queriesTable.innerHTML = byType.query.map((report) => rowTemplate(report)).join('') || '<tr><td colspan="10">No queries</td></tr>';
   } catch (error) {
-    const errorRow = `<tr><td colspan="9">Unable to load dashboard: ${escapeHtml(error.message)}</td></tr>`;
+    const errorRow = `<tr><td colspan="10">Unable to load dashboard: ${escapeHtml(error.message)}</td></tr>`;
     sosTable.innerHTML = errorRow;
     complaintsTable.innerHTML = errorRow;
     queriesTable.innerHTML = errorRow;
@@ -82,7 +115,7 @@ window.toggleStatus = async (id) => {
     await apiFetch(`/api/report/${encodeURIComponent(id)}`, { method: 'PATCH' });
     await loadDashboard();
   } catch (error) {
-    const errorRow = `<tr><td colspan="9">Unable to update status: ${escapeHtml(error.message)}</td></tr>`;
+    const errorRow = `<tr><td colspan="10">Unable to update status: ${escapeHtml(error.message)}</td></tr>`;
     sosTable.innerHTML = errorRow;
     complaintsTable.innerHTML = errorRow;
     queriesTable.innerHTML = errorRow;
