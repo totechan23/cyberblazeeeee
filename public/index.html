@@ -61,7 +61,14 @@
         <form id="reportForm" class="stacked-form">
           <div class="field-grid">
             <label>Name <input name="citizenName" placeholder="Your full name" /></label>
-            <label>Location <input name="location" placeholder="Area / Ward / Street" /></label>
+            <label>
+              Location
+              <input id="locationInput" name="location" placeholder="Area / Ward / Street" />
+            </label>
+          </div>
+          <div class="location-row">
+            <button id="locationAccessBtn" class="btn btn-outline" type="button">📍 Use My Location</button>
+            <span id="locationStatus" class="voice-status" aria-live="polite"></span>
           </div>
           <label>
             Message
@@ -119,6 +126,7 @@
         </div>
         <div class="map-frame-wrap">
           <iframe
+            id="incidentMap"
             title="India Map"
             src="https://www.google.com/maps?q=India&output=embed"
             loading="lazy"

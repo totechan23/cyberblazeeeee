@@ -214,6 +214,14 @@ h2 {
   margin-top: 0.9rem;
 }
 
+.location-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: -0.2rem;
+}
+
 .emergency-contacts {
   display: none;
   gap: 0.8rem;
