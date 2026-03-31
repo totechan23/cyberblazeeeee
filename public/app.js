@@ -3,13 +3,11 @@ const feedback = document.getElementById('feedback');
 const statsGrid = document.getElementById('statsGrid');
 const bars = document.getElementById('bars');
 const sosBtn = document.getElementById('sosBtn');
-const chatForm = document.getElementById('chatForm');
 const chatMessages = document.getElementById('chatMessages');
 const sharedMessageInput = document.getElementById('sharedMessageInput');
+const askAiBtn = document.getElementById('askAiBtn');
 const reportVoiceBtn = document.getElementById('reportVoiceBtn');
 const reportVoiceStatus = document.getElementById('reportVoiceStatus');
-const chatVoiceBtn = document.getElementById('chatVoiceBtn');
-const chatVoiceStatus = document.getElementById('chatVoiceStatus');
 const locationAccessBtn = document.getElementById('locationAccessBtn');
 const locationStatus = document.getElementById('locationStatus');
 const locationInput = document.getElementById('locationInput');
@@ -414,6 +412,36 @@ async function loadStats() {
   }
 }
 
+async function runUnifiedAiChat(prompt) {
+  addChatMessage('user', prompt);
+  sharedMessageInput.value = '';
+
+  try {
+    const data = await apiFetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    });
+    const reply = data.reply || 'I can help with flagship civic reports, SOS support, and general questions too.';
+    const decision = data.decision
+      ? `\nDecision: ${data.decision.intent} (confidence ${data.decision.confidence})\nNext actions: ${(data.decision.next_actions || []).join(', ')}`
+      : '';
+    addChatMessage('assistant', `${reply}${decision}`);
+
+    if (data.decision?.intent === 'emergency') {
+      sosBtn.classList.add('ai-triggered');
+      window.setTimeout(() => sosBtn.classList.remove('ai-triggered'), 900);
+      await raiseSOS(
+        `AI-detected emergency from chat: ${prompt}`,
+        'Emergency detected from chat. SOS has been triggered automatically.',
+      );
+      addChatMessage('assistant', '🚨 I detected an SOS emergency and automatically triggered the SOS alert.');
+    }
+  } catch (error) {
+    addChatMessage('assistant', `Sorry, chat is unavailable right now: ${error.message}`);
+  }
+}
+
 reportForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   feedback.textContent = 'Submitting...';
@@ -433,6 +461,8 @@ reportForm.addEventListener('submit', async (event) => {
       ? `\nRouted to: ${data.report.department} (${data.report.complaintType})`
       : '';
     feedback.textContent = `Case ${data.report.id} submitted as ${data.report.type.toUpperCase()}${routingLine}\n${chatbotReply}`;
+    addChatMessage('user', payload.message || '');
+    addChatMessage('assistant', `Issue submitted as ${data.report.type.toUpperCase()} (Case ${data.report.id}). ${chatbotReply}`);
     console.log(`Civic AI Flagship Chatbot: ${chatbotReply}`);
     reportForm.reset();
     renderStats(data.stats);
@@ -441,6 +471,14 @@ reportForm.addEventListener('submit', async (event) => {
     feedback.style.color = '#ff8f9a';
   }
 });
+
+if (askAiBtn && sharedMessageInput) {
+  askAiBtn.addEventListener('click', async () => {
+    const prompt = sharedMessageInput.value.trim();
+    if (!prompt) return;
+    await runUnifiedAiChat(prompt);
+  });
+}
 
 sosBtn.addEventListener('click', async () => {
   try {
@@ -451,42 +489,8 @@ sosBtn.addEventListener('click', async () => {
   }
 });
 
-if (chatForm && sharedMessageInput && chatMessages) {
+if (sharedMessageInput && chatMessages) {
   addChatMessage('assistant', 'Hello! I am Civic AI Flagship. I can help with emergencies and city services, and I can also chat about general topics like writing, coding, planning, and ideas.');
-
-  chatForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const prompt = sharedMessageInput.value.trim();
-    if (!prompt) return;
-
-    addChatMessage('user', prompt);
-    sharedMessageInput.value = '';
-
-    try {
-      const data = await apiFetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      const reply = data.reply || 'I can help with flagship civic reports, SOS support, and general questions too.';
-      const decision = data.decision
-        ? `\nDecision: ${data.decision.intent} (confidence ${data.decision.confidence})\nNext actions: ${(data.decision.next_actions || []).join(', ')}`
-        : '';
-      addChatMessage('assistant', `${reply}${decision}`);
-
-      if (data.decision?.intent === 'emergency') {
-        sosBtn.classList.add('ai-triggered');
-        window.setTimeout(() => sosBtn.classList.remove('ai-triggered'), 900);
-        await raiseSOS(
-          `AI-detected emergency from chat: ${prompt}`,
-          'Emergency detected from chat. SOS has been triggered automatically.',
-        );
-        addChatMessage('assistant', '🚨 I detected an SOS emergency and automatically triggered the SOS alert.');
-      }
-    } catch (error) {
-      addChatMessage('assistant', `Sorry, chat is unavailable right now: ${error.message}`);
-    }
-  });
 }
 
 loadStats();
@@ -500,10 +504,4 @@ setupVoiceInput({
   button: reportVoiceBtn,
   targetInput: sharedMessageInput,
   statusElement: reportVoiceStatus,
-});
-
-setupVoiceInput({
-  button: chatVoiceBtn,
-  targetInput: sharedMessageInput,
-  statusElement: chatVoiceStatus,
 });
