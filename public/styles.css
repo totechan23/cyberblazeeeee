@@ -478,6 +478,27 @@ select:focus {
   overflow-x: auto;
 }
 
+.case-areas {
+  display: grid;
+  gap: 1rem;
+}
+
+.case-area {
+  border: 1px solid rgba(122, 157, 255, 0.2);
+  border-radius: 16px;
+  padding: 0.75rem;
+  background: rgba(5, 11, 27, 0.38);
+}
+
+.case-area-title {
+  margin-bottom: 0.5rem;
+}
+
+.case-area-title h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
 table {
   width: 100%;
   min-width: 760px;
