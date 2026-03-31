@@ -71,12 +71,13 @@
             <span id="locationStatus" class="voice-status" aria-live="polite"></span>
           </div>
           <label>
-            Message
+            Issue / AI Prompt
             <textarea
-              id="reportMessageInput"
+              id="sharedMessageInput"
               name="message"
               rows="5"
-              placeholder="Describe your issue in detail. Civic AI Flagship auto-classifies and routes it."
+              placeholder="Describe your issue or ask Civic AI a question. This shared input is used for both Submit an Issue and AI Chat."
+              required
             ></textarea>
           </label>
           <div class="voice-row">
@@ -95,14 +96,8 @@
         </div>
         <p class="subtitle">Ask anything — from everyday questions to writing, coding, planning, and civic support.</p>
         <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-        <form id="chatForm" class="chat-form">
-          <input
-            id="chatInput"
-            name="prompt"
-            placeholder="Ask anything... writing, coding, ideas, civic help, and more"
-            autocomplete="off"
-            required
-          />
+        <form id="chatForm" class="chat-form shared-input">
+          <p class="chat-shared-note">Using the shared Issue / AI Prompt field in the Submit an Issue card.</p>
           <button id="chatVoiceBtn" class="btn btn-voice" type="button">🎤 Voice</button>
           <button class="btn" type="submit">Send</button>
         </form>
