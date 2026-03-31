@@ -217,8 +217,8 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
       return false;
     }
 
-    try {
-      if (navigator.permissions?.query) {
+    if (navigator.permissions?.query) {
+      try {
         const permission = await navigator.permissions.query({ name: 'microphone' });
         if (permission.state === 'denied') {
           hasMicrophonePermission = false;
@@ -229,8 +229,13 @@ function setupVoiceInput({ button, targetInput, statusElement }) {
           hasMicrophonePermission = true;
           return true;
         }
+      } catch {
+        // Some browsers do not support querying "microphone" permissions.
+        // Fall back to getUserMedia permission request below.
       }
+    }
 
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((track) => track.stop());
       hasMicrophonePermission = true;
