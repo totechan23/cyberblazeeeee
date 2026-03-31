@@ -3,11 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
+const https = require('https');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'reports.json');
+const SOS_SMS_RECIPIENT = process.env.SOS_SMS_RECIPIENT || '+917558684485';
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify([]));
@@ -251,6 +253,80 @@ function sendJSON(res, code, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function sendTwilioSms({ to, body }) {
+  return new Promise((resolve, reject) => {
+    const accountSid = sanitizeText(process.env.TWILIO_ACCOUNT_SID, '');
+    const authToken = sanitizeText(process.env.TWILIO_AUTH_TOKEN, '');
+    const fromNumber = sanitizeText(process.env.TWILIO_FROM_NUMBER, '');
+
+    if (!accountSid || !authToken || !fromNumber) {
+      reject(new Error('Twilio credentials are missing. Configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER.'));
+      return;
+    }
+
+    const formBody = new URLSearchParams({
+      To: to,
+      From: fromNumber,
+      Body: body,
+    }).toString();
+
+    const request = https.request({
+      hostname: 'api.twilio.com',
+      path: `/2010-04-01/Accounts/${accountSid}/Messages.json`,
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(formBody),
+      },
+    }, (response) => {
+      let payload = '';
+      response.on('data', (chunk) => {
+        payload += chunk.toString();
+      });
+      response.on('end', () => {
+        const isSuccess = response.statusCode >= 200 && response.statusCode < 300;
+        if (!isSuccess) {
+          reject(new Error(`Twilio SMS failed with status ${response.statusCode}`));
+          return;
+        }
+        resolve(payload);
+      });
+    });
+
+    request.on('error', (error) => reject(error));
+    request.write(formBody);
+    request.end();
+  });
+}
+
+async function notifySOSBySms(report) {
+  const smsMessage = [
+    '🚨 Civic AI SOS Alert',
+    `Case: ${report.id}`,
+    `Citizen: ${report.citizenName}`,
+    `Location: ${report.location}`,
+    `Message: ${report.message}`,
+    `Time: ${new Date(report.createdAt).toLocaleString('en-US', { timeZone: 'UTC' })} UTC`,
+  ].join(' | ');
+
+  try {
+    await sendTwilioSms({
+      to: SOS_SMS_RECIPIENT,
+      body: smsMessage,
+    });
+    return { attempted: true, delivered: true, recipient: SOS_SMS_RECIPIENT };
+  } catch (error) {
+    console.error('SOS SMS notification failed:', error.message);
+    return {
+      attempted: true,
+      delivered: false,
+      recipient: SOS_SMS_RECIPIENT,
+      error: error.message,
+    };
+  }
+}
+
 function parseBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -341,11 +417,17 @@ const server = http.createServer(async (req, res) => {
       writeReports(reports);
 
       const chatbotReply = buildChatbotReply(type, report.citizenName);
+      let smsNotification = null;
+      if (type === 'sos') {
+        smsNotification = await notifySOSBySms(report);
+      }
+
       sendJSON(res, 201, {
         success: true,
         report,
         stats: buildStats(reports),
         chatbotReply,
+        smsNotification,
       });
     } catch (error) {
       sendJSON(res, 400, { error: error.message });

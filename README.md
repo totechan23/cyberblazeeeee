@@ -24,6 +24,24 @@ Then open `http://localhost:3000`.
 
 > Requires `python3` in your PATH for `/api/chat` intelligent decision mode.
 
+### Optional SOS SMS alerts (Twilio)
+
+When an SOS report is created, the server now attempts to send an SMS alert to `+917558684485` by default.
+
+Configure Twilio credentials before starting the server:
+
+```bash
+export TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export TWILIO_AUTH_TOKEN=your_auth_token
+export TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+```
+
+Optional override:
+
+```bash
+export SOS_SMS_RECIPIENT=+917558684485
+```
+
 ## API
 
 - `POST /api/report` create report
