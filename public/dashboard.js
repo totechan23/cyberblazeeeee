@@ -1,5 +1,7 @@
 const statsGrid = document.getElementById('statsGrid');
-const reportsTable = document.getElementById('reportsTable');
+const sosTable = document.getElementById('sosTable');
+const complaintsTable = document.getElementById('complaintsTable');
+const queriesTable = document.getElementById('queriesTable');
 
 function escapeHtml(value = '') {
   return String(value)
@@ -58,9 +60,20 @@ async function loadDashboard() {
     ]);
 
     renderStats(stats);
-    reportsTable.innerHTML = reports.map(rowTemplate).join('') || '<tr><td colspan="9">No cases yet</td></tr>';
+    const byType = {
+      sos: reports.filter((report) => report.type === 'sos'),
+      complaint: reports.filter((report) => report.type === 'complaint'),
+      query: reports.filter((report) => report.type === 'query'),
+    };
+
+    sosTable.innerHTML = byType.sos.map(rowTemplate).join('') || '<tr><td colspan="9">No SOS cases</td></tr>';
+    complaintsTable.innerHTML = byType.complaint.map(rowTemplate).join('') || '<tr><td colspan="9">No complaints</td></tr>';
+    queriesTable.innerHTML = byType.query.map(rowTemplate).join('') || '<tr><td colspan="9">No queries</td></tr>';
   } catch (error) {
-    reportsTable.innerHTML = `<tr><td colspan="9">Unable to load dashboard: ${escapeHtml(error.message)}</td></tr>`;
+    const errorRow = `<tr><td colspan="9">Unable to load dashboard: ${escapeHtml(error.message)}</td></tr>`;
+    sosTable.innerHTML = errorRow;
+    complaintsTable.innerHTML = errorRow;
+    queriesTable.innerHTML = errorRow;
   }
 }
 
@@ -69,7 +82,10 @@ window.toggleStatus = async (id) => {
     await apiFetch(`/api/report/${encodeURIComponent(id)}`, { method: 'PATCH' });
     await loadDashboard();
   } catch (error) {
-    reportsTable.innerHTML = `<tr><td colspan="9">Unable to update status: ${escapeHtml(error.message)}</td></tr>`;
+    const errorRow = `<tr><td colspan="9">Unable to update status: ${escapeHtml(error.message)}</td></tr>`;
+    sosTable.innerHTML = errorRow;
+    complaintsTable.innerHTML = errorRow;
+    queriesTable.innerHTML = errorRow;
   }
 };
 

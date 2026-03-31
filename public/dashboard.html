@@ -41,26 +41,85 @@
 
       <section class="card">
         <div class="card-title-row">
-          <h2>Incoming Cases</h2>
-          <span class="tag tag-pending">Action Queue</span>
+          <h2>Incoming Cases by Area</h2>
+          <span class="tag tag-pending">Sorted Queue</span>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Complaint Type</th>
-                <th>Department</th>
-                <th>Citizen</th>
-                <th>Location</th>
-                <th>Message</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="reportsTable"></tbody>
-          </table>
+
+        <div class="case-areas">
+          <div class="case-area">
+            <div class="card-title-row case-area-title">
+              <h3>SOS Area</h3>
+              <span class="tag tag-sos">Emergency</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Complaint Type</th>
+                    <th>Department</th>
+                    <th>Citizen</th>
+                    <th>Location</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="sosTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="case-area">
+            <div class="card-title-row case-area-title">
+              <h3>Complaint Area</h3>
+              <span class="tag tag-complaint">Municipal</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Complaint Type</th>
+                    <th>Department</th>
+                    <th>Citizen</th>
+                    <th>Location</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="complaintsTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="case-area">
+            <div class="card-title-row case-area-title">
+              <h3>Query Area</h3>
+              <span class="tag tag-query">Information</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Complaint Type</th>
+                    <th>Department</th>
+                    <th>Citizen</th>
+                    <th>Location</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="queriesTable"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
     </main>
