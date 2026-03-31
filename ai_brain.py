@@ -16,7 +16,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 STOP_WORDS = {
     "the",
@@ -97,6 +97,29 @@ INTENT_KEYWORDS = {
     },
 }
 
+INTENT_SYNONYMS = {
+    "emergency": {"medical", "injury", "accidentally", "unsafe", "trapped", "robbery", "violence"},
+    "complaint": {"notworking", "not-working", "damaged", "dirty", "stinking", "overflowing", "repair"},
+    "query": {"asking", "know", "timeline", "eta", "expected", "policy", "procedure"},
+    "stats": {"numbers", "metrics", "analytics", "insights", "trend", "trends"},
+    "guidance": {"instructions", "advise", "recommend", "next", "do"},
+    "smalltalk": {"sup", "hello!", "hiya", "thx", "thankyou"},
+    "general": {"task", "assignment", "work", "project", "document"},
+}
+
+SPELLING_CANONICAL_MAP = {
+    "smrt": "smart",
+    "smarterr": "smarter",
+    "pls": "please",
+    "plz": "please",
+    "emergncy": "emergency",
+    "complane": "complaint",
+    "complain": "complaint",
+    "stat": "stats",
+    "updte": "update",
+    "querry": "query",
+    "infromation": "information",
+}
 
 @dataclass
 class Decision:
@@ -108,7 +131,30 @@ class Decision:
 
 def tokenize(message: str) -> List[str]:
     normalized = re.sub(r"[^a-z0-9\s]", " ", message.lower())
-    return [token for token in normalized.split() if token and token not in STOP_WORDS]
+    tokens = [token for token in normalized.split() if token and token not in STOP_WORDS]
+    return [SPELLING_CANONICAL_MAP.get(token, token) for token in tokens]
+
+
+def jaccard_similarity(word_a: str, word_b: str) -> float:
+    set_a = set(word_a)
+    set_b = set(word_b)
+    if not set_a or not set_b:
+        return 0.0
+    return len(set_a.intersection(set_b)) / len(set_a.union(set_b))
+
+
+def fuzzy_overlap_count(token_set: set, words: set) -> Tuple[int, int]:
+    exact_hits = len(token_set.intersection(words))
+    fuzzy_hits = 0
+    if exact_hits:
+        return exact_hits, fuzzy_hits
+
+    for token in token_set:
+        if len(token) < 4:
+            continue
+        if any(jaccard_similarity(token, word) >= 0.8 for word in words):
+            fuzzy_hits += 1
+    return exact_hits, fuzzy_hits
 
 
 
@@ -120,10 +166,15 @@ def decide_intent(tokens: List[str]) -> Decision:
     token_set = set(tokens)
 
     for intent, words in INTENT_KEYWORDS.items():
-        overlap = token_set.intersection(words)
-        if overlap:
-            base = 1.6 if intent == "emergency" else 1.0
-            scores[intent] += base * len(overlap)
+        exact_hits, fuzzy_hits = fuzzy_overlap_count(token_set, words)
+        synonym_exact_hits, synonym_fuzzy_hits = fuzzy_overlap_count(token_set, INTENT_SYNONYMS.get(intent, set()))
+
+        if exact_hits or fuzzy_hits or synonym_exact_hits or synonym_fuzzy_hits:
+            base = 1.8 if intent == "emergency" else 1.0
+            scores[intent] += base * exact_hits
+            scores[intent] += (base * 0.65) * fuzzy_hits
+            scores[intent] += 0.8 * synonym_exact_hits
+            scores[intent] += 0.5 * synonym_fuzzy_hits
 
     top_intent = max(scores, key=scores.get)
     top_score = scores[top_intent]
@@ -189,7 +240,10 @@ def build_reply(prompt: str, stats: dict, decision: Decision) -> str:
         )
 
     if decision.intent == "query":
-        return "Sure thing — share the context, your exact question, and any case ID so I can help you get a faster response."
+        return (
+            "Sure thing — share the context, your exact question, and any case ID so I can help you get a faster response. "
+            "If this is about an existing ticket, add the last status update you received."
+        )
 
     if decision.intent == "stats":
         return (
