@@ -372,7 +372,7 @@ sosBtn.addEventListener('click', async () => {
 });
 
 if (chatForm && chatInput && chatMessages) {
-  addChatMessage('assistant', 'Hello! I am Civic AI Assistant. I can triage emergencies, draft better complaints, answer civic queries, and summarize live system trends.');
+  addChatMessage('assistant', 'Hello! I am Civic AI. I can triage emergencies, draft better complaints, answer civic queries, and summarize live system trends.');
 
   chatForm.addEventListener('submit', async (event) => {
     event.preventDefault();
