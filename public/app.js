@@ -372,7 +372,7 @@ sosBtn.addEventListener('click', async () => {
 });
 
 if (chatForm && chatInput && chatMessages) {
-  addChatMessage('assistant', 'Hello! I am Civic AI. I can triage emergencies, draft better complaints, answer civic queries, and summarize live system trends.');
+  addChatMessage('assistant', 'Hello! I am Civic AI. I can help with emergencies and city services, and I can also chat about general topics like writing, coding, planning, and ideas.');
 
   chatForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -388,7 +388,7 @@ if (chatForm && chatInput && chatMessages) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
-      const reply = data.reply || 'I am here to help with civic reports and SOS support.';
+      const reply = data.reply || 'I can help with civic reports, SOS support, and general questions too.';
       const decision = data.decision
         ? `\nDecision: ${data.decision.intent} (confidence ${data.decision.confidence})\nNext actions: ${(data.decision.next_actions || []).join(', ')}`
         : '';

@@ -78,6 +78,23 @@ INTENT_KEYWORDS = {
     "query": {"query", "question", "clarify", "information", "details", "update"},
     "stats": {"stats", "status", "reports", "dashboard", "summary", "count"},
     "guidance": {"guide", "steps", "process", "file", "submit"},
+    "smalltalk": {"hello", "hi", "hey", "thanks", "thank", "yo", "hola", "good", "morning", "evening"},
+    "general": {
+        "explain",
+        "write",
+        "create",
+        "story",
+        "poem",
+        "code",
+        "debug",
+        "email",
+        "plan",
+        "ideas",
+        "brainstorm",
+        "translate",
+        "summarize",
+        "anything",
+    },
 }
 
 
@@ -112,7 +129,9 @@ def decide_intent(tokens: List[str]) -> Decision:
     top_score = scores[top_intent]
 
     if top_score <= 0:
-        return Decision(intent="guidance", confidence=0.35, next_actions=["provide_menu"])
+        if len(tokens) >= 3:
+            return Decision(intent="general", confidence=0.55, next_actions=["clarify_goal", "provide_general_help"])
+        return Decision(intent="smalltalk", confidence=0.35, next_actions=["friendly_greeting"])
 
     total = sum(scores.values()) + 1e-9
     confidence = min(0.98, max(0.4, top_score / total + 0.3))
@@ -125,6 +144,10 @@ def decide_intent(tokens: List[str]) -> Decision:
         actions = ["summarize_metrics", "evaluate_backlog"]
     elif top_intent == "query":
         actions = ["collect_case_id", "clarify_question"]
+    elif top_intent == "smalltalk":
+        actions = ["friendly_greeting", "offer_capabilities"]
+    elif top_intent == "general":
+        actions = ["clarify_goal", "provide_general_help"]
     else:
         actions = ["provide_menu", "suggest_next_step"]
 
@@ -176,9 +199,21 @@ def build_reply(prompt: str, stats: dict, decision: Decision) -> str:
             f"Insight: {summarize_backlog(stats)}"
         )
 
+    if decision.intent == "smalltalk":
+        return (
+            "Hey! I’m here and ready to help. You can ask me almost anything — writing, coding, planning, "
+            "explanations, or civic support."
+        )
+
+    if decision.intent == "general":
+        return (
+            "Absolutely — I can chat like a general assistant too. Tell me your goal and preferred format "
+            "(quick answer, step-by-step, bullet points, code, email draft, etc.), and I’ll tailor the response."
+        )
+
     return (
         "I can help with SOS escalation, complaint drafting, and civic query handling. "
-        "Try asking for 'stats', 'file complaint steps', or 'SOS help' and I’ll walk you through it."
+        "I can also support general tasks like writing, coding, brainstorming, summaries, and explanations."
     )
 
 

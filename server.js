@@ -197,7 +197,11 @@ function buildAssistantReply(prompt, reports) {
     return `Live summary: total ${stats.total}, pending ${stats.pending}, resolved ${stats.resolved}, SOS ${stats.sos}, complaints ${stats.complaint}, queries ${stats.query}. Insight: ${summarizeBacklog(stats)}`;
   }
 
-  return `I can help with SOS escalation, complaint drafting, and query handling. Current system load: ${stats.total} total reports with ${stats.pending} pending. Ask for "stats", "file complaint steps", or "SOS help" for tailored guidance.`;
+  if (tokens.length >= 3) {
+    return 'Absolutely — I can work as a general assistant too. Share what you want (writing, coding, brainstorming, planning, summarizing, translation, or explanations) and your preferred output style.';
+  }
+
+  return `I can help with SOS escalation, complaint drafting, query handling, and general assistant tasks. Current system load: ${stats.total} total reports with ${stats.pending} pending. Ask for "stats", "file complaint steps", or "SOS help" for tailored guidance.`;
 }
 
 function runPythonDecisionEngine(prompt, reports) {
